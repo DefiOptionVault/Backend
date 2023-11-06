@@ -1,5 +1,6 @@
 package com.DefiOptionVault.DOV.Strike;
 
+import com.DefiOptionVault.DOV.Option.OptionRepository;
 import com.DefiOptionVault.DOV.Option.OptionService;
 import com.DefiOptionVault.DOV.Option.Option;
 import com.DefiOptionVault.DOV.Strike.Strike;
@@ -31,6 +32,9 @@ public class StrikeService {
 
     @Autowired
     private OptionService optionService;
+
+    @Autowired
+    private OptionRepository optionRepository;
 
     public List<Strike> getAllStrikes() {
         return strikeRepository.findAll();
@@ -84,11 +88,15 @@ public class StrikeService {
         return Objects.requireNonNull(response.getBody()).getResult().getPrice();
     }
 
-    @Scheduled(cron = "0 00 00 * * ?")
     public BigDecimal setStrikeOptionPrice(Strike strike) {
 
         LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-        LocalDateTime expiry = strike.getOption().getExpiry().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime();
+        LocalDateTime expiry = strike
+                .getOption()
+                .getExpiry()
+                .toInstant()
+                .atZone(ZoneOffset.UTC)
+                .toLocalDateTime();
         long dayDiff = ChronoUnit.DAYS.between(now, expiry);
 
         if (dayDiff == 0L) {
@@ -101,5 +109,30 @@ public class StrikeService {
         BigDecimal r = BigDecimal.valueOf(0.0525);
 
         return calcPutOptionPrice(S, K, T, r);
+    }
+
+    public void updateStrikeOptionPricesForOptionId(int optionId) {
+        List<Strike> strikes = getStrikesByOptionId(optionId);
+        for (Strike strike : strikes) {
+            BigDecimal updatedPrice = setStrikeOptionPrice(strike);
+            strike.setOptionPrice(updatedPrice.toString());
+            strikeRepository.save(strike);
+        }
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void updateOptionPricesForAllOptions() {
+        List<Option> allOptions = optionRepository.findAll();
+        for (Option option : allOptions) {
+            LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+            LocalDateTime expiry = option
+                    .getExpiry()
+                    .toInstant()
+                    .atZone(ZoneOffset.UTC)
+                    .toLocalDateTime();
+            if(ChronoUnit.DAYS.between(now, expiry) > 0) {
+                updateStrikeOptionPricesForOptionId(option.getOptionId());
+            }
+        }
     }
 }

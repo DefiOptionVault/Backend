@@ -24,6 +24,13 @@ public class StrikeController {
         return new ResponseEntity<>(savedStrikes, HttpStatus.CREATED);
     }
 
+    ///api/strikes/updateOptionPrices?optionId=YOUR_OPTION_ID
+    @PostMapping("/updateOptionPrices")
+    public ResponseEntity<Void> updateOptionPricesForGivenOptionId(@RequestParam int optionId) {
+        strikeService.updateStrikeOptionPricesForOptionId(optionId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     ///api/strikes/byOption?optionId=YOUR_OPTION_ID
     @GetMapping("/byOptionId")
     public ResponseEntity<List<Strike>> getStrikesByOptionId(@RequestParam int optionId) {
@@ -33,6 +40,4 @@ public class StrikeController {
         }
         return new ResponseEntity<>(strikes, HttpStatus.OK);
     }
-
-
 }
