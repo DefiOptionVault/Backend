@@ -43,6 +43,12 @@ public class OptionController {
         return new ResponseEntity<>(savedOption, HttpStatus.CREATED);
     }
 
+    @PostMapping("/{optionId}/generateNextRound")
+    public ResponseEntity<Option> generateNextRoundOption(@PathVariable Integer optionId) {
+        Option newOption = optionService.generateNextRoundOption(optionId);
+        return new ResponseEntity<>(newOption, HttpStatus.CREATED);
+    }
+
     // Read
     @GetMapping("/{id}")
     public ResponseEntity<Option> getOptionById(@PathVariable int id) {
