@@ -22,20 +22,6 @@ public class OptionController {
     @Autowired
     private OptionService optionService;
 
-    /*
-    @Autowired
-    private OptionPricingService optionPricingService;
-
-    @GetMapping("/putPrice")
-    public BigDecimal getPutOptionPrice(
-            @RequestParam BigDecimal S,
-            @RequestParam BigDecimal K,
-            @RequestParam BigDecimal T,
-            @RequestParam BigDecimal r) {
-        return optionPricingService.calculatePutOptionPrice(S, K, T, r);
-    }
-    */
-
     // Create
     @PostMapping("/set_option_info")
     public ResponseEntity<Option> createOption(@RequestBody Option option) {
