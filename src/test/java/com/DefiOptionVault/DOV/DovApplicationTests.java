@@ -97,7 +97,7 @@ class DovApplicationTests {
 
 		// Set values for the function parameters
 		BigInteger[] strikes = new BigInteger[]{BigInteger.valueOf(1000), BigInteger.valueOf(2000)};
-		BigInteger expiry = BigInteger.valueOf(1234567890);
+		BigInteger expiry = BigInteger.valueOf(1700203297);
 		String expirySymbol = "EXPIRY_SYMBOL";
 
 		// Call the bootstrap function
