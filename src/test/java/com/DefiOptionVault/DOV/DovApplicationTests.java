@@ -15,10 +15,12 @@ import org.web3j.protocol.core.methods.response.EthCall;
 import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.tx.ClientTransactionManager;
 import org.web3j.tx.RawTransactionManager;
 import org.web3j.tx.TransactionManager;
 import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.DefaultGasProvider;
+import wrapper.DovForTest;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -79,38 +81,31 @@ class DovApplicationTests {
 
 	@Test
 	void bootstrap() throws IOException {
-		// Web3j 초기화
+		// 계정 연결
+		Credentials credentials = Credentials.create(PRIVATE_KEY);
 		Web3j web3j = Web3j.build(new HttpService(RPC));
 
-		// 자격 증명 및 트랜잭션 매니저 설정
-		Credentials credentials = Credentials.create(PRIVATE_KEY);
-		TransactionManager transactionManager = new RawTransactionManager(web3j, credentials);
+		// Specify Polygon Mumbai network ID (80001)
+		long chainId = 80001;
+
+		TransactionManager transactionManager = new RawTransactionManager(web3j, credentials, chainId);
+
 		ContractGasProvider gasProvider = new DefaultGasProvider();
 
-		// 호출할 함수와 파라미터 설정
-		String functionName = "bootstrap";
-		List<Uint256> strikes = Arrays.asList(new Uint256(BigInteger.valueOf(1000)), new Uint256(BigInteger.valueOf(2000)));
-		Uint256 expiry = new Uint256(BigInteger.valueOf(1234567890));
-		Utf8String expirySymbol = new Utf8String("EXPIRY_SYMBOL");
-		List<Type> inputParameters = Arrays.asList(new DynamicArray<>(Uint256.class, strikes), expiry, expirySymbol);
-		List<TypeReference<?>> outputParameters = Arrays.asList();
+		// Create Contract instance
+		DovForTest contract = DovForTest.load(DOV_ADDRESS, web3j, transactionManager, gasProvider);
 
-		// 함수 객체 생성
-		Function function = new Function(
-				functionName,
-				inputParameters,
-				outputParameters);
+		// Set values for the function parameters
+		BigInteger[] strikes = new BigInteger[]{BigInteger.valueOf(1000), BigInteger.valueOf(2000)};
+		BigInteger expiry = BigInteger.valueOf(1234567890);
+		String expirySymbol = "EXPIRY_SYMBOL";
 
-		// 트랜잭션을 인코딩
-		String encodedFunction = FunctionEncoder.encode(function);
-
-		// 트랜잭션 전송
-		EthSendTransaction transactionReceipt = transactionManager.sendTransaction(
-				gasProvider.getGasPrice(functionName),
-				gasProvider.getGasLimit(functionName),
-				DOV_ADDRESS,
-				encodedFunction,
-				BigInteger.ZERO);
-		System.out.println("Transaction Hash: " + transactionReceipt.getTransactionHash());
+		// Call the bootstrap function
+		try {
+			TransactionReceipt transactionReceipt = contract.bootstrap(Arrays.asList(strikes), expiry, expirySymbol).send();
+			System.out.println("Transaction Hash: " + transactionReceipt.getTransactionHash());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
