@@ -1,4 +1,4 @@
-package com.DefiOptionVault.DOV.config;
+package com.DefiOptionVault.DOV.Config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;

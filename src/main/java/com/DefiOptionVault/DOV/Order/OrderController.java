@@ -1,7 +1,9 @@
 package com.DefiOptionVault.DOV.Order;
 
 import com.DefiOptionVault.DOV.Order.OrderService;
+import java.math.BigInteger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +15,8 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private Web3jService web3jService;
 
     @GetMapping
     public List<Order> getAllOrders() {
@@ -48,5 +52,15 @@ public class OrderController {
     @DeleteMapping("/{id}")
     public void deleteOrder(@PathVariable Integer id) {
         orderService.deleteOrder(id);
+    }
+
+    @GetMapping("/bootstrap")
+    public void bootstrap(@Value("${ethereum.rpc.url}") String rpcUrl) {
+        web3jService.bootstrap();
+    }
+
+    @GetMapping("/getBalance")
+    public BigInteger getBalance() {
+        return web3jService.BalanceOf();
     }
 }

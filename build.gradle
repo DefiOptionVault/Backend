@@ -21,7 +21,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf:3.0.4'
 	implementation 'org.springframework.boot:spring-boot-starter-web:3.1.0'
 	implementation 'org.apache.commons:commons-math3:3.6.1'
-	implementation 'org.web3j:core:5.0.0'
+	implementation 'org.web3j:core:4.10.0'
 	runtimeOnly 'com.mysql:mysql-connector-j:8.0.32'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test:3.1.0'
 }
