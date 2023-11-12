@@ -77,4 +77,21 @@ public class Web3jService {
             e.printStackTrace();
         }
     }
+
+    public void expire(BigInteger settlementPrice) {
+        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        Credentials credentials = Credentials.create(PRIVATE_KEY);
+
+        TransactionManager transactionManager = new RawTransactionManager(web3j, credentials, CHAIN_ID);
+        ContractGasProvider gasProvider = new DefaultGasProvider();
+
+        DovWrapper contract = DovWrapper.load(DOV_ADDRESS, web3j, transactionManager, gasProvider);
+
+        try {
+            TransactionReceipt transactionReceipt = contract.expire(settlementPrice).send();
+            System.out.println("Transaction Receipt: " + transactionReceipt.getTransactionHash());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -55,12 +55,17 @@ public class OrderController {
     }
 
     @GetMapping("/bootstrap")
-    public void bootstrap(@Value("${ethereum.rpc.url}") String rpcUrl) {
+    public void bootstrap() {
         web3jService.bootstrap();
     }
 
     @GetMapping("/getBalance")
     public BigInteger getBalance() {
         return web3jService.BalanceOf();
+    }
+
+    @PostMapping("/expire/{settlementPrice}")
+    public void expire(@PathVariable BigInteger settlementPrice) {
+        web3jService.expire(settlementPrice);
     }
 }
