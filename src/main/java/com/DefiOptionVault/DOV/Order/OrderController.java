@@ -38,6 +38,16 @@ public class OrderController {
         return orderService.getOrderById(id);
     }
 
+    @GetMapping("/allPnl")
+    public BigInteger getAllPnl() {
+        List<Order> historicalPosition = getHistoricalPosition();
+        BigInteger sum = BigInteger.valueOf(0);
+        for (Order order : historicalPosition) {
+            sum = sum.add(new BigInteger(order.getPnl()));
+        }
+        return sum;
+    }
+
     @PostMapping
     public Order createOrder(@RequestBody Order order) {
         orderService.addOpenedPosition(order);

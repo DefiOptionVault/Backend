@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.List;
 import org.hibernate.boot.model.convert.spi.ConverterAutoApplyHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.ldap.embedded.EmbeddedLdapProperties.Credential;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
@@ -94,4 +96,25 @@ public class Web3jService {
             e.printStackTrace();
         }
     }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void updateOptionPrices(BigInteger[] optionPricesArray) {
+        Web3j web3j = Web3j.build(new HttpService(rpcUrl));
+        Credentials credentials = Credentials.create(PRIVATE_KEY);
+
+        TransactionManager transactionManager = new RawTransactionManager(web3j, credentials, CHAIN_ID);
+        ContractGasProvider gasProvider = new DefaultGasProvider();
+
+        DovWrapper contract = DovWrapper.load(DOV_ADDRESS, web3j, transactionManager, gasProvider);
+
+        List<BigInteger> optionPrices = Arrays.asList(optionPricesArray);
+        try {
+            TransactionReceipt transactionReceipt = contract.updateOptionPrice(optionPrices).send();
+            System.out.println("Transaction Receipt: " + transactionReceipt.getTransactionHash());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

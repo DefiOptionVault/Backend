@@ -47,6 +47,17 @@ public class OrderService {
         historicalPosition.add(order);
     }
 
+    public void popOpenedPosition(Order order) {
+        Optional<Order> openedOrder = getOrderById(order.getOrderId());
+
+        if (openedOrder.isPresent() && openedPosition.contains(openedOrder.get())) {
+            openedPosition.remove(openedOrder.get());
+            historicalPosition.add(openedOrder.get());
+        }
+    }
+
+
+
     @Scheduled(cron = "59 59 23 * * SUN")
     public void processExpiredOrders() {
         List<Order> expiredOrders = new ArrayList<>();
