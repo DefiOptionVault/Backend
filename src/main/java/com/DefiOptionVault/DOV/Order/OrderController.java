@@ -23,6 +23,16 @@ public class OrderController {
         return orderService.getAllOrders();
     }
 
+    @GetMapping("/openedPosition")
+    public List<Order> getOpenedPosition() {
+        return orderService.getOpenedPosition();
+    }
+
+    @GetMapping("/historicalPosition")
+    public List<Order> getHistoricalPosition() {
+        return orderService.getHistoricalPosition();
+    }
+
     @GetMapping("/{id}")
     public Optional<Order> getOrderById(@PathVariable Integer id) {
         return orderService.getOrderById(id);
@@ -30,6 +40,7 @@ public class OrderController {
 
     @PostMapping
     public Order createOrder(@RequestBody Order order) {
+        orderService.addOpenedPosition(order);
         return orderService.saveOrder(order);
     }
 

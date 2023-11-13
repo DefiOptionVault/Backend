@@ -40,4 +40,84 @@ public class Order {
 
     @Column(name = "CLIENT_ADDRESS", length = 42)
     private String clientAddress;
+
+    public Integer getOrderId() {
+        return orderId;
+    }
+
+    public Option getOption() {
+        return option;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public String getStrikePrice() {
+        return strikePrice;
+    }
+
+    public String getSettlementPrice() {
+        return settlementPrice;
+    }
+
+    public Integer getAmount() {
+        return amount;
+    }
+
+    public String getPnl() {
+        return pnl;
+    }
+
+    public Timestamp getOrderTime() {
+        return orderTime;
+    }
+
+    public String getClientAddress() {
+        return clientAddress;
+    }
+
+    public void setOrderId(Integer orderId) {
+        this.orderId = orderId;
+    }
+
+    public void setOption(Option option) {
+        this.option = option;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public void setStrikePrice(String strikePrice) {
+        this.strikePrice = strikePrice;
+    }
+
+    public void setSettlementPrice(String settlementPrice) {
+        this.settlementPrice = settlementPrice;
+    }
+
+    public void setAmount(Integer amount) {
+        this.amount = amount;
+    }
+
+    public void setPnl(String pnl) {
+        this.pnl = pnl;
+    }
+
+    public void setOrderTime(Timestamp orderTime) {
+        this.orderTime = orderTime;
+    }
+
+    public void setClientAddress(String clientAddress) {
+        this.clientAddress = clientAddress;
+    }
 }
