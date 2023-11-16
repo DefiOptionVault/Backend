@@ -28,6 +28,9 @@ public class Option {
     @Column(name = "COLLATERAL_ASSET", length = 10, nullable = false)
     private String collateralAsset;
 
+    @Column(name = "TVL", length = 64)
+    private String TVL;
+
     @Column(name = "EXPIRY")
     private Timestamp expiry;
 
@@ -52,6 +55,10 @@ public class Option {
 
     public String getCollateralAsset() {
         return collateralAsset;
+    }
+
+    public String getTVL() {
+        return TVL;
     }
 
     public Timestamp getExpiry() {
@@ -81,6 +88,10 @@ public class Option {
 
     public void setCollateralAsset(String collateralAsset) {
         this.collateralAsset = collateralAsset;
+    }
+
+    public void setTVL(String TVL) {
+        this.TVL = TVL;
     }
 
     public void setExpiry(Timestamp expiry) {
