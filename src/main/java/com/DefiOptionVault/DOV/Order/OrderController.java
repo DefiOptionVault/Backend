@@ -1,13 +1,17 @@
 package com.DefiOptionVault.DOV.Order;
 
+import com.DefiOptionVault.DOV.Option.Option;
+import com.DefiOptionVault.DOV.Option.OptionRepository;
 import com.DefiOptionVault.DOV.Order.OrderService;
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
+import java.sql.Timestamp;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -15,6 +19,8 @@ public class OrderController {
 
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private OptionRepository optionRepository;
     @Autowired
     private Web3jService web3jService;
 
@@ -49,8 +55,22 @@ public class OrderController {
     }
 
     @PostMapping("/sendPosition")
-    public Order createOrder(@RequestBody Order order) {
-        orderService.addOpenedPosition(order);
+    public Order createOrder(@RequestBody OrderRequestDTO orderRequestDTO) {
+        Order order = new Order();
+
+        Option option = optionRepository.findById(orderRequestDTO.getOptionId())
+                .orElseThrow(() -> new IllegalArgumentException("Option not found"));
+        order.setOption(option);
+
+        order.setAmount(orderRequestDTO.getAmount());
+        order.setPosition(orderRequestDTO.getPosition());
+        order.setStrikePrice(orderRequestDTO.getStrikePrice());
+        order.setClientAddress(orderRequestDTO.getClientAddress());
+        order.setSymbol(option.getSymbol());
+        order.setOrderTime(new Timestamp(System.currentTimeMillis()));
+        order.setSettlementPrice("0");
+        order.setPnl("0");
+
         return orderService.saveOrder(order);
     }
 
