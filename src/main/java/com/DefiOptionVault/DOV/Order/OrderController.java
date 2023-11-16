@@ -48,7 +48,7 @@ public class OrderController {
         return sum;
     }
 
-    @PostMapping
+    @PostMapping("/sendPosition")
     public Order createOrder(@RequestBody Order order) {
         orderService.addOpenedPosition(order);
         return orderService.saveOrder(order);
