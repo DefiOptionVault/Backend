@@ -41,7 +41,12 @@ public class OrderService {
         List<Order> orders = getAllOrders();
         List<Order> result = new ArrayList<>();
         for (Order order : orders) {
-            BigInteger pnl = new BigInteger(order.getPnl());
+            BigInteger pnl;
+            try {
+                pnl = new BigInteger(order.getPnl());
+            } catch (NumberFormatException e) {
+                pnl = BigInteger.ZERO;
+            }
             LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
             LocalDateTime expiry = order.getOption()
                     .getExpiry()
