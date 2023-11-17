@@ -82,6 +82,7 @@ public class OrderController {
         order.setOrderTime(new Timestamp(System.currentTimeMillis()));
         order.setSettlementPrice("0");
         order.setPnl("0");
+        order.setSettled(false);
 
         return orderService.saveOrder(order);
     }
