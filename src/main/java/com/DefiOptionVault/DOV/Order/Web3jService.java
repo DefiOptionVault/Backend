@@ -69,7 +69,7 @@ public class Web3jService {
         DovWrapper contract = DovWrapper.load(DOV_ADDRESS, web3j, transactionManager, gasProvider);
 
         BigInteger[] strikes = new BigInteger[]{BigInteger.valueOf(1000), BigInteger.valueOf(2000)};
-        BigInteger expiry = BigInteger.valueOf(1700203297);
+        BigInteger expiry = BigInteger.valueOf(1701043199);
         String expirySymbol = "EXPIRY_SYMBOL";
 
         try {

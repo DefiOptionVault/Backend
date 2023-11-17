@@ -47,13 +47,8 @@ public class OrderService {
             } catch (NumberFormatException e) {
                 pnl = BigInteger.ZERO;
             }
-            LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-            LocalDateTime expiry = order.getOption()
-                    .getExpiry()
-                    .toInstant()
-                    .atZone(ZoneOffset.UTC)
-                    .toLocalDateTime();
-            if (expiry.isAfter(now)) {
+
+            if (order.getSettlementPrice().equals("0")) {
                 result.add(order);
             } else if(!order.getSettled()) {
                 if (order.getPosition().equals("write")) {
