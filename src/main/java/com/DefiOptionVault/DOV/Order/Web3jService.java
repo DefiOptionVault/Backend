@@ -97,7 +97,8 @@ public class Web3jService {
         }
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
+
+    //@Scheduled(cron = "0 0 0 * * ?")
     public void updateOptionPrices(BigInteger[] optionPricesArray) {
         Web3j web3j = Web3j.build(new HttpService(rpcUrl));
         Credentials credentials = Credentials.create(PRIVATE_KEY);

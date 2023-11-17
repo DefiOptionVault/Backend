@@ -25,7 +25,7 @@ public class StrikeService {
 
     private static final String DERIBIT_VOLATILITY_API_URL = "https://www.deribit.com/api/v2/public/get_historical_volatility?currency=ETH";
     private static final String DERIBIT_CURRENT_PRICE_API_URL = "https://www.deribit.com/api/v2/public/get_index_price?index_name=eth_usdc";
-
+    private static final BigDecimal UNIT_MULTIPLIER = new BigDecimal("1e18");
 
     @Autowired
     private StrikeRepository strikeRepository;
@@ -107,8 +107,7 @@ public class StrikeService {
         BigDecimal K = new BigDecimal(strike.getStrikePrice());
         BigDecimal T = BigDecimal.valueOf(Math.abs(dayDiff));
         BigDecimal r = BigDecimal.valueOf(0.0525);
-
-        return calcPutOptionPrice(S, K, T, r);
+        return calcPutOptionPrice(S, K, T, r).multiply(UNIT_MULTIPLIER);
     }
 
     public void updateStrikeOptionPricesForOptionId(int optionId) {
@@ -130,7 +129,7 @@ public class StrikeService {
                     .toInstant()
                     .atZone(ZoneOffset.UTC)
                     .toLocalDateTime();
-            if(ChronoUnit.DAYS.between(now, expiry) > 0) {
+            if(expiry.isAfter(now)) {
                 updateStrikeOptionPricesForOptionId(option.getOptionId());
             }
         }

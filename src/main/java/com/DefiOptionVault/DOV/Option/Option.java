@@ -73,7 +73,6 @@ public class Option {
         return round;
     }
 
-    // Setters
     public void setOptionId(int optionId) {
         this.optionId = optionId;
     }

@@ -3,6 +3,7 @@ package com.DefiOptionVault.DOV.Order;
 import com.DefiOptionVault.DOV.Option.Option;
 import com.DefiOptionVault.DOV.Order.Order;
 import com.DefiOptionVault.DOV.Order.OrderRepository;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -20,9 +21,6 @@ public class OrderService {
     @Autowired
     private OrderRepository orderRepository;
 
-    private List<Order> openedPosition;
-    private List<Order> historicalPosition;
-
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
@@ -39,50 +37,45 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
-    public void addOpenedPosition(Order order) {
-        openedPosition.add(order);
-    }
-
-    public void addHistoricalPosition(Order order) {
-        historicalPosition.add(order);
-    }
-
-    public void popOpenedPosition(Order order) {
-        Optional<Order> openedOrder = getOrderById(order.getOrderId());
-
-        if (openedOrder.isPresent() && openedPosition.contains(openedOrder.get())) {
-            openedPosition.remove(openedOrder.get());
-            historicalPosition.add(openedOrder.get());
-        }
-    }
-
-
-
-    @Scheduled(cron = "59 59 23 * * SUN")
-    public void processExpiredOrders() {
-        List<Order> expiredOrders = new ArrayList<>();
-        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-
-        for (Order order : openedPosition) {
+    public List<Order> addOpenedPosition() {
+        List<Order> orders = getAllOrders();
+        List<Order> result = new ArrayList<>();
+        for (Order order : orders) {
+            BigInteger pnl = new BigInteger(order.getPnl());
+            LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
             LocalDateTime expiry = order.getOption()
                     .getExpiry()
                     .toInstant()
                     .atZone(ZoneOffset.UTC)
                     .toLocalDateTime();
-            if (expiry.isBefore(now)) {
-                expiredOrders.add(order);
+            if (expiry.isAfter(now)) {
+                result.add(order);
+            } else if(!order.getSettled()) {
+                if (order.getPosition().equals("write")) {
+                    result.add(order);
+                }
+                if (order.getPosition().equals("purchase")
+                        && pnl.compareTo(BigInteger.ZERO) > 0) {
+                    result.add(order);
+                }
             }
         }
 
-        openedPosition.removeAll(expiredOrders);
-        historicalPosition.addAll(expiredOrders);
+        return result;
     }
+/*
+    public void popOpenedPosition(Order order) {
+        Optional<Order> openedOrder = getOrderById(order.getOrderId());
 
-    public List<Order> getOpenedPosition() {
-        return openedPosition;
+        if (openedOrder.isPresent() && openedPosition.contains(openedOrder.get())) {
+            openedPosition.remove(openedOrder.get());
+            //openedOrder.get().
+            //settlementPrice : 만기 시 가격으로 업뎃
+            //Pnl : strikePrice 에서 빼서 넣기
+            //strikePrice - settelmentPrice(put옵션 이익)
+            //큰 경우는 Pnl 0
+            historicalPosition.add(openedOrder.get());
+        }
     }
-
-    public List<Order> getHistoricalPosition() {
-        return historicalPosition;
-    }
+*/
 }

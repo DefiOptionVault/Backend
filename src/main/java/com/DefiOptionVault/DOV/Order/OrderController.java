@@ -5,6 +5,8 @@ import com.DefiOptionVault.DOV.Option.OptionRepository;
 import com.DefiOptionVault.DOV.Order.OrderService;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
@@ -31,12 +33,22 @@ public class OrderController {
 
     @GetMapping("/openedPosition")
     public List<Order> getOpenedPosition() {
-        return orderService.getOpenedPosition();
+        return orderService.addOpenedPosition();
     }
 
     @GetMapping("/historicalPosition")
     public List<Order> getHistoricalPosition() {
-        return orderService.getHistoricalPosition();
+        List<Order> orders = orderService.getAllOrders();
+        List<Order> opened = orderService.addOpenedPosition();
+        List<Order> result = new ArrayList<>();
+
+        for(Order order : orders) {
+            if (!opened.contains(order)) {
+                result.add(order);
+            }
+        }
+
+        return result;
     }
 
     @GetMapping("/{id}")
