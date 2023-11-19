@@ -6,6 +6,7 @@ import com.DefiOptionVault.DOV.Option.Option;
 import com.DefiOptionVault.DOV.Strike.Strike;
 import com.DefiOptionVault.DOV.Strike.StrikeRepository;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.web.client.RestTemplate;
+import org.web3j.protocol.Web3j;
 
 @Service
 public class StrikeService {
@@ -110,15 +112,16 @@ public class StrikeService {
         return calcPutOptionPrice(S, K, T, r).multiply(UNIT_MULTIPLIER);
     }
 
-    public void updateStrikeOptionPricesForOptionId(int optionId) {
+    public List<Strike> updateStrikeOptionPricesForOptionId(int optionId) {
         List<Strike> strikes = getStrikesByOptionId(optionId);
         for (Strike strike : strikes) {
             BigDecimal updatedPrice = setStrikeOptionPrice(strike);
             strike.setOptionPrice(updatedPrice.toString());
             strikeRepository.save(strike);
         }
+        return strikes;
     }
-
+/*
     @Scheduled(cron = "0 0 0 * * ?")
     public void updateOptionPricesForAllOptions() {
         List<Option> allOptions = optionRepository.findAll();
@@ -134,4 +137,30 @@ public class StrikeService {
             }
         }
     }
+*/
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void updateOptionPricesByAddress() {
+        Web3jService web3jService = new Web3jService();
+        List<Option> allOptions = optionRepository.findAll();
+        for (Option option : allOptions) {
+            LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
+            LocalDateTime expiry = option
+                    .getExpiry()
+                    .toInstant()
+                    .atZone(ZoneOffset.UTC)
+                    .toLocalDateTime();
+            if(expiry.isAfter(now)) {
+                List<Strike> strikes = updateStrikeOptionPricesForOptionId(option.getOptionId());
+                String address = option.getOptionAddress();
+                BigInteger[] strikePrices = new BigInteger[4];
+                int i = 0;
+                for(Strike strike : strikes) {
+                    strikePrices[i] = new BigInteger(strike.getOptionPrice());
+                    i += 1;
+                }
+                web3jService.updateOptionPrices(address, strikePrices);
+            }
+        }
+    }
+
 }

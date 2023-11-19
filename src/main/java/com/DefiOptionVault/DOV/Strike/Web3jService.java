@@ -1,4 +1,4 @@
-package com.DefiOptionVault.DOV.Order;
+package com.DefiOptionVault.DOV.Strike;
 
 import Wrapper.DovWrapper;
 import java.io.IOException;
@@ -59,7 +59,7 @@ public class Web3jService {
         return balance;
     }
 
-    public void bootstrap() {
+    public void bootstrap(BigInteger[] strikes, BigInteger expiry, String expirySymbol) {
         Web3j web3j = Web3j.build(new HttpService(rpcUrl));
         Credentials credentials = Credentials.create(PRIVATE_KEY);
 
@@ -68,9 +68,9 @@ public class Web3jService {
 
         DovWrapper contract = DovWrapper.load(DOV_ADDRESS, web3j, transactionManager, gasProvider);
 
-        BigInteger[] strikes = new BigInteger[]{BigInteger.valueOf(1000), BigInteger.valueOf(2000)};
-        BigInteger expiry = BigInteger.valueOf(1701043199);
-        String expirySymbol = "EXPIRY_SYMBOL";
+        //BigInteger[] strikes = new BigInteger[]{BigInteger.valueOf(1000), BigInteger.valueOf(2000)};
+        //BigInteger expiry = BigInteger.valueOf(1701043199);
+        //String expirySymbol = "EXPIRY_SYMBOL";
 
         try {
             TransactionReceipt transactionReceipt = contract.bootstrap(Arrays.asList(strikes), expiry, expirySymbol).send();
@@ -98,15 +98,14 @@ public class Web3jService {
     }
 
 
-    //@Scheduled(cron = "0 0 0 * * ?")
-    public void updateOptionPrices(BigInteger[] optionPricesArray) {
+    public void updateOptionPrices(String address, BigInteger[] optionPricesArray) {
         Web3j web3j = Web3j.build(new HttpService(rpcUrl));
         Credentials credentials = Credentials.create(PRIVATE_KEY);
 
         TransactionManager transactionManager = new RawTransactionManager(web3j, credentials, CHAIN_ID);
         ContractGasProvider gasProvider = new DefaultGasProvider();
 
-        DovWrapper contract = DovWrapper.load(DOV_ADDRESS, web3j, transactionManager, gasProvider);
+        DovWrapper contract = DovWrapper.load(address, web3j, transactionManager, gasProvider);
 
         List<BigInteger> optionPrices = Arrays.asList(optionPricesArray);
         try {

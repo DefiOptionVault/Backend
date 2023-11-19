@@ -2,13 +2,10 @@ package com.DefiOptionVault.DOV.Order;
 
 import com.DefiOptionVault.DOV.Option.Option;
 import com.DefiOptionVault.DOV.Option.OptionRepository;
-import com.DefiOptionVault.DOV.Order.OrderService;
+import com.DefiOptionVault.DOV.Strike.Web3jService;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -108,10 +105,12 @@ public class OrderController {
         orderService.deleteOrder(id);
     }
 
+    /*
     @GetMapping("/bootstrap")
     public void bootstrap() {
         web3jService.bootstrap();
     }
+    */
 
     @GetMapping("/getBalance")
     public BigInteger getBalance() {
