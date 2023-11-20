@@ -3,6 +3,7 @@ package com.DefiOptionVault.DOV.Option;
 import com.DefiOptionVault.DOV.Notification.NotificationRequest;
 import com.DefiOptionVault.DOV.Strike.StrikeService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.DayOfWeek;
@@ -29,6 +30,11 @@ public class OptionService {
 
     @Autowired
     private NotificationRequest notificationRequest;
+
+    @Autowired
+    private StrikeService strikeService;
+
+    private static final BigInteger UNIT = new BigInteger("1000000000000000000");
 
     // Create
     public Option saveOption(Option option) {
@@ -77,7 +83,8 @@ public class OptionService {
                     .atZone(ZoneOffset.UTC)
                     .toLocalDateTime();
             if (expiry.equals(now)) {
-                //web3jService.expire();
+                BigInteger settlementPrice = new BigInteger(String.valueOf(strikeService.getCurrentAssetPrice()));
+                web3jService.expire(settlementPrice.multiply(UNIT));
                 Option newOption = generateNextRoundOption(option.getOptionId());
                 BigInteger[] strikes = new BigInteger[4];
                 BigInteger base = new BigInteger(String.valueOf(strikeService.getCurrentAssetPrice()));
@@ -87,7 +94,7 @@ public class OptionService {
                 strikes[3] = base.add(new BigInteger("100"));
 
                 for(int i = 0; i < 4; i++) {
-                    strikes[i] = strikes[i].multiply(new BigInteger("1000000000000000000"));
+                    strikes[i] = strikes[i].multiply(UNIT);
                 }
 
                 web3jService.bootstrap(strikes,

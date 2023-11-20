@@ -3,6 +3,7 @@ package com.DefiOptionVault.DOV.Order;
 import com.DefiOptionVault.DOV.Option.Option;
 import com.DefiOptionVault.DOV.Order.Order;
 import com.DefiOptionVault.DOV.Order.OrderRepository;
+import com.DefiOptionVault.DOV.Strike.StrikeService;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -20,6 +21,11 @@ public class OrderService {
 
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private StrikeService strikeService;
+
+    private static final BigInteger UNIT = new BigInteger("1000000000000000000");
 
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
@@ -78,11 +84,11 @@ public class OrderService {
                 String symbol = order.getSymbol();
                 if (symbol.substring(symbol.length() - 3).equals("PUT")) {
 
-                    //order.setSettlementPrice();
+                    BigInteger price = new BigInteger(String.valueOf(strikeService.getCurrentAssetPrice()));
+                    order.setSettlementPrice(String.valueOf(price.multiply(UNIT)));
 
-                    BigInteger settlement = new BigInteger(order.getSettlementPrice());
                     BigInteger strike = new BigInteger(order.getStrikePrice());
-                    BigInteger pnl = settlement.subtract(strike);
+                    BigInteger pnl = price.subtract(strike);
 
                     if (pnl.signum() == -1) {
                         order.setPnl(String.valueOf(0));
