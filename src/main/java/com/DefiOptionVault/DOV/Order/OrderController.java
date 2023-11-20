@@ -30,13 +30,13 @@ public class OrderController {
 
     @GetMapping("/openedPosition")
     public List<Order> getOpenedPosition() {
-        return orderService.addOpenedPosition();
+        return orderService.showOpenedPosition();
     }
 
     @GetMapping("/historicalPosition")
     public List<Order> getHistoricalPosition() {
         List<Order> orders = orderService.getAllOrders();
-        List<Order> opened = orderService.addOpenedPosition();
+        List<Order> opened = orderService.showOpenedPosition();
         List<Order> result = new ArrayList<>();
 
         for(Order order : orders) {
@@ -83,22 +83,6 @@ public class OrderController {
 
         return orderService.saveOrder(order);
     }
-
-    /*
-    @PutMapping("/{id}")
-    public Order updateOrder(@PathVariable Integer id, @RequestBody Order updatedOrder) {
-        Order order = orderService.getOrderById(id).orElse(null);
-        if (order != null) {
-            order.setStrikePrice(updatedOrder.getStrikePrice());
-            order.setAmount(updatedOrder.getAmount());
-            order.setSettlementPrice(updatedOrder.getSettlementPrice());
-            order.setPnl(updatedOrder.getPnl());
-            order.setOrderTime(updatedOrder.getOrderTime());
-            return orderService.saveOrder(order);
-        }
-        return null;
-    }
-    */
 
     @DeleteMapping("/{id}")
     public void deleteOrder(@PathVariable Integer id) {
