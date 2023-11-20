@@ -84,7 +84,7 @@ public class StrikeService {
         return lastVolatility.divide(divisor, 64, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal getCurrentAssetPrice() {
+    public BigDecimal getCurrentAssetPrice() {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<CurrentPriceResponse> response = restTemplate.getForEntity(DERIBIT_CURRENT_PRICE_API_URL, CurrentPriceResponse.class);
         return Objects.requireNonNull(response.getBody()).getResult().getPrice();
@@ -115,7 +115,7 @@ public class StrikeService {
     public List<Strike> updateStrikeOptionPricesForOptionId(int optionId) {
         List<Strike> strikes = getStrikesByOptionId(optionId);
         for (Strike strike : strikes) {
-            BigDecimal updatedPrice = setStrikeOptionPrice(strike);
+            BigInteger updatedPrice = new BigInteger(String.valueOf(setStrikeOptionPrice(strike)));
             strike.setOptionPrice(updatedPrice.toString());
             strikeRepository.save(strike);
         }
@@ -149,12 +149,12 @@ public class StrikeService {
                     .toInstant()
                     .atZone(ZoneOffset.UTC)
                     .toLocalDateTime();
-            if(expiry.isAfter(now)) {
+            if (expiry.isAfter(now)) {
                 List<Strike> strikes = updateStrikeOptionPricesForOptionId(option.getOptionId());
                 String address = option.getOptionAddress();
                 BigInteger[] strikePrices = new BigInteger[4];
                 int i = 0;
-                for(Strike strike : strikes) {
+                for (Strike strike : strikes) {
                     strikePrices[i] = new BigInteger(strike.getOptionPrice());
                     i += 1;
                 }
