@@ -1,6 +1,6 @@
 package com.DefiOptionVault.DOV.Option;
 
-import com.DefiOptionVault.DOV.Strike.Strike;
+import com.DefiOptionVault.DOV.Notification.NotificationRequest;
 import com.DefiOptionVault.DOV.Strike.StrikeService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
 import java.math.BigInteger;
@@ -13,6 +13,7 @@ import java.time.temporal.TemporalAdjusters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import com.DefiOptionVault.DOV.Notification.NotificationService;
 
 import java.util.Optional;
 import java.util.List;
@@ -22,6 +23,12 @@ public class OptionService {
 
     @Autowired
     private OptionRepository optionRepository;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private NotificationRequest notificationRequest;
 
     // Create
     public Option saveOption(Option option) {
@@ -87,7 +94,19 @@ public class OptionService {
                         BigInteger.valueOf(newOption.getExpiry().getTime()),
                         newOption.getSymbol());
             }
+            try {
+                String userDeviceToken = notificationRequest.getDeviceToken();
+                if (userDeviceToken != null && !userDeviceToken.isEmpty()) {
+                    notificationService.sendNotification(
+                            userDeviceToken,
+                            "알림 : 옵션 상품 만기",
+                            "현재 옵션 상품이 만기되었습니다. 정산 내역을 확인해주세요.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
+
     }
 
     // Update
