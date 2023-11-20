@@ -84,8 +84,6 @@ public class OrderController {
         order.setPnl("0");
         order.setSettled(false);
 
-        optionService.addOptionTVL(order.getOption(), BigInteger.valueOf(order.getAmount()));
-
         return orderService.saveOrder(order);
     }
 
