@@ -31,9 +31,6 @@ public class Strike {
     @Column(name = "OPTION_PRICE", length = 64)
     private String optionPrice;
 
-    @Column(name = "AVAILABLE_AMOUNT", length = 64)
-    private String availableAmount;
-
     @Column(name = "STRIKE_INDEX", nullable = false)
     private int strikeIndex;
 
@@ -67,14 +64,6 @@ public class Strike {
 
     public void setOptionPrice(String optionPrice) {
         this.optionPrice = optionPrice;
-    }
-
-    public String getAvailableAmount() {
-        return availableAmount;
-    }
-
-    public void setAvailableAmount(String availableAmount) {
-        this.availableAmount = availableAmount;
     }
 
     public int getStrikeIndex() {
