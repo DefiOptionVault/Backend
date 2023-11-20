@@ -116,6 +116,12 @@ public class OptionService {
 
     }
 
+    public void addOptionTVL(Option option, BigInteger newTvl) {
+        BigInteger tvl = new BigInteger(option.getTVL());
+        tvl = tvl.add(newTvl);
+        option.setTVL(String.valueOf(tvl));
+    }
+
     // Update
     public Option updateOption(Option option) {
         return optionRepository.save(option);

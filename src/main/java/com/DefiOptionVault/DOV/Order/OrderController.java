@@ -2,6 +2,7 @@ package com.DefiOptionVault.DOV.Order;
 
 import com.DefiOptionVault.DOV.Option.Option;
 import com.DefiOptionVault.DOV.Option.OptionRepository;
+import com.DefiOptionVault.DOV.Option.OptionService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ public class OrderController {
     private OrderService orderService;
     @Autowired
     private OptionRepository optionRepository;
+    @Autowired
+    private OptionService optionService;
     @Autowired
     private Web3jService web3jService;
 
@@ -80,6 +83,8 @@ public class OrderController {
         order.setSettlementPrice("0");
         order.setPnl("0");
         order.setSettled(false);
+
+        optionService.addOptionTVL(order.getOption(), BigInteger.valueOf(order.getAmount()));
 
         return orderService.saveOrder(order);
     }
