@@ -79,9 +79,13 @@ public class OrderController {
                 .orElseThrow(() -> new IllegalArgumentException("Option not found"));
         order.setOption(option);
 
+        int strikeIndex = orderService
+                .findStrikeIndexByStrikePrice(option, order.getStrikePrice());
+
         order.setAmount(orderRequestDTO.getAmount());
         order.setPosition(orderRequestDTO.getPosition());
         order.setStrikePrice(orderRequestDTO.getStrikePrice());
+        order.setStrikeIndex(strikeIndex);
         order.setClientAddress(orderRequestDTO.getClientAddress());
         order.setSymbol(option.getSymbol());
         order.setOrderTime(new Timestamp(System.currentTimeMillis()));

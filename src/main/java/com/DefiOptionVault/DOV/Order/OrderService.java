@@ -3,6 +3,7 @@ package com.DefiOptionVault.DOV.Order;
 import com.DefiOptionVault.DOV.Option.Option;
 import com.DefiOptionVault.DOV.Order.Order;
 import com.DefiOptionVault.DOV.Order.OrderRepository;
+import com.DefiOptionVault.DOV.Strike.Strike;
 import com.DefiOptionVault.DOV.Strike.StrikeService;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -41,6 +42,20 @@ public class OrderService {
 
     public void deleteOrder(Integer id) {
         orderRepository.deleteById(id);
+    }
+
+    public int findStrikeIndexByStrikePrice(Option option, String strikePrice) {
+        List<Strike> strikes = strikeService.getStrikesByOptionId(option.getOptionId());
+        int index = -1;
+        for(Strike strike : strikes) {
+            if (strike.getStrikePrice().equals(strikePrice)) {
+                index = strike.getStrikeIndex();
+            }
+        }
+        if (index == -1){
+            throw new NoSuchElementException("There's no Strike Price");
+        }
+        return index;
     }
 
     public List<Order> showOpenedPosition(String client) {
