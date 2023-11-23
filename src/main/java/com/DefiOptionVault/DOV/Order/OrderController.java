@@ -6,6 +6,7 @@ import com.DefiOptionVault.DOV.Option.OptionService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -107,5 +108,13 @@ public class OrderController {
     @PostMapping("/expire/{settlementPrice}")
     public void expire(@PathVariable BigInteger settlementPrice) {
         web3jService.expire(settlementPrice);
+    }
+
+    @PostMapping("/updateSettled/{order_id}")
+    public void updateSetteled(@PathVariable int orderId) {
+        Order order = orderService.getOrderById(orderId)
+                .orElseThrow(NoSuchElementException::new);
+
+        order.setSettled(true);
     }
 }
