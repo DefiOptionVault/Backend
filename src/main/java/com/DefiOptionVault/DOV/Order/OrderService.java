@@ -43,25 +43,27 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
-    public List<Order> showOpenedPosition() {
+    public List<Order> showOpenedPosition(String client) {
         List<Order> orders = getAllOrders();
         List<Order> result = new ArrayList<>();
         for (Order order : orders) {
-            BigInteger pnl;
-            try {
-                pnl = new BigInteger(order.getPnl());
-            } catch (NumberFormatException e) {
-                pnl = BigInteger.ZERO;
-            }
-            if (order.getSettlementPrice().equals("0")) {
-                result.add(order);
-            } else if(!order.getSettled()) {
-                if (order.getPosition().equals("write")) {
-                    result.add(order);
+            if (order.getClientAddress().equals(client)) {
+                BigInteger pnl;
+                try {
+                    pnl = new BigInteger(order.getPnl());
+                } catch (NumberFormatException e) {
+                    pnl = BigInteger.ZERO;
                 }
-                if (order.getPosition().equals("purchase")
-                        && pnl.compareTo(BigInteger.ZERO) > 0) {
+                if (order.getSettlementPrice().equals("0")) {
                     result.add(order);
+                } else if (!order.getSettled()) {
+                    if (order.getPosition().equals("write")) {
+                        result.add(order);
+                    }
+                    if (order.getPosition().equals("purchase")
+                            && pnl.compareTo(BigInteger.ZERO) > 0) {
+                        result.add(order);
+                    }
                 }
             }
         }

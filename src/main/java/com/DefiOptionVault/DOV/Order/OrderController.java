@@ -32,19 +32,22 @@ public class OrderController {
         return orderService.getAllOrders();
     }
 
+    ///api/orders/openedPosition?address={}
     @GetMapping("/openedPosition")
-    public List<Order> getOpenedPosition() {
-        return orderService.showOpenedPosition();
+    public List<Order> getOpenedPosition(@RequestParam String address) {
+        return orderService.showOpenedPosition(address);
     }
 
+    ///api/orders/historicalPosition?address={}
     @GetMapping("/historicalPosition")
-    public List<Order> getHistoricalPosition() {
+    public List<Order> getHistoricalPosition(@RequestParam String address) {
         List<Order> orders = orderService.getAllOrders();
-        List<Order> opened = orderService.showOpenedPosition();
+        List<Order> opened = orderService.showOpenedPosition(address);
         List<Order> result = new ArrayList<>();
 
         for(Order order : orders) {
-            if (!opened.contains(order)) {
+            if (!opened.contains(order)
+                    && order.getClientAddress().equals(address)) {
                 result.add(order);
             }
         }
@@ -57,9 +60,10 @@ public class OrderController {
         return orderService.getOrderById(id);
     }
 
+    ///api/orders/allPnl?address={}
     @GetMapping("/allPnl")
-    public BigInteger getAllPnl() {
-        List<Order> historicalPosition = getHistoricalPosition();
+    public BigInteger getAllPnl(@RequestParam String address) {
+        List<Order> historicalPosition = getHistoricalPosition(address);
         BigInteger sum = BigInteger.valueOf(0);
         for (Order order : historicalPosition) {
             sum = sum.add(new BigInteger(order.getPnl()));
@@ -84,6 +88,7 @@ public class OrderController {
         order.setSettlementPrice("0");
         order.setPnl("0");
         order.setSettled(false);
+        order.setTokenId(orderRequestDTO.getTokenId());
 
         return orderService.saveOrder(order);
     }
