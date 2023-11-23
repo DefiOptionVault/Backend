@@ -26,6 +26,9 @@ public class Order {
     @Column(name = "STRIKE_PRICE", length = 64)
     private String strikePrice;
 
+    @Column(name = "STRIKE_INDEX")
+    private int strikeIndex;
+
     @Column(name = "SETTLEMENT_PRICE", length = 64)
     private String settlementPrice;
 
@@ -65,6 +68,10 @@ public class Order {
 
     public String getStrikePrice() {
         return strikePrice;
+    }
+
+    public int getStrikeIndex() {
+        return strikeIndex;
     }
 
     public String getSettlementPrice() {
@@ -113,6 +120,10 @@ public class Order {
 
     public void setStrikePrice(String strikePrice) {
         this.strikePrice = strikePrice;
+    }
+
+    public void setStrikeIndex(int strikeIndex) {
+        this.strikeIndex = strikeIndex;
     }
 
     public void setSettlementPrice(String settlementPrice) {
