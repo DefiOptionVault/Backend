@@ -44,7 +44,7 @@ public class Order {
     @Column(name = "SETTLED")
     private boolean settled;
 
-    @Column(name = "TOKEN_ID", length = 42)
+    @Column(name = "TOKEN_ID", length = 64)
     private String tokenId;
 
     public Integer getOrderId() {
