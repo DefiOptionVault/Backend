@@ -5,6 +5,7 @@ import com.DefiOptionVault.DOV.Order.Order;
 import com.DefiOptionVault.DOV.Order.OrderRepository;
 import com.DefiOptionVault.DOV.Strike.Strike;
 import com.DefiOptionVault.DOV.Strike.StrikeService;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -85,6 +86,27 @@ public class OrderService {
         }
 
         return result;
+    }
+
+    @Transactional
+    public BigInteger calcPnl(Order order) {
+        BigInteger orderSettle = new BigInteger(order.getSettlementPrice());
+        BigInteger orderStrike = new BigInteger(order.getStrikePrice());
+        BigInteger amount = new BigInteger(String.valueOf(order.getAmount()));
+        BigInteger newPnl = BigInteger.ZERO;
+        if (order.getPosition().equals("purchase")) {
+            newPnl = (orderStrike.subtract(orderSettle)).multiply(amount);
+            if (newPnl.signum() == -1) {
+                newPnl = BigInteger.ZERO;
+            }
+        }
+        if (order.getPosition().equals("write")) {
+            newPnl = (orderSettle.subtract(orderStrike)).multiply(amount);
+            if (newPnl.signum() == -1) {
+                newPnl = BigInteger.ZERO;
+            }
+        }
+        return newPnl;
     }
 
     @Transactional

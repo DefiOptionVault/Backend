@@ -87,7 +87,7 @@ public class StrikeService {
     public BigDecimal getCurrentAssetPrice() {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<CurrentPriceResponse> response = restTemplate.getForEntity(DERIBIT_CURRENT_PRICE_API_URL, CurrentPriceResponse.class);
-        return Objects.requireNonNull(response.getBody()).getResult().getPrice();
+        return Objects.requireNonNull(response.getBody()).getResult().getIndex_price();
     }
 
     public BigDecimal setStrikeOptionPrice(Strike strike) {

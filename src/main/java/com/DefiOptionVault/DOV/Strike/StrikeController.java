@@ -1,5 +1,6 @@
 package com.DefiOptionVault.DOV.Strike;
 import com.DefiOptionVault.DOV.Option.OptionRepository;
+import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -39,5 +40,12 @@ public class StrikeController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(strikes, HttpStatus.OK);
+    }
+
+    @GetMapping("/currentOptionPrice")
+    public BigDecimal showCurrentPrice() {
+        BigDecimal test = strikeService.getCurrentAssetPrice();
+        if (test == null) return BigDecimal.ZERO;
+        return strikeService.getCurrentAssetPrice();
     }
 }

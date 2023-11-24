@@ -33,7 +33,7 @@ public class Web3jService {
     private final String ADMIN_ADDRESS = "0x6472A2F7187C49f05022b4F04b8f4545a7f88797";
     private final String rpcUrl = "https://polygon-mumbai.g.alchemy.com/v2/-cnnQMgoJVRgbeWlXVmUWJnn4YylXDng";
     private final String PRIVATE_KEY = "0x4e09642cccd2e9bbabb4f1136aa128986d46037e953cc21006f489a547ff995f";
-    private final String DOV_ADDRESS = "0x27ceD7a949c538775E5a66a8582dc24dD6d5e5D4";
+    private final String DOV_ADDRESS = "0xfcAfdbC62E3B36D3aC0c0204F124Cf62c5273589";
     private final long CHAIN_ID = 80001;
     private  Web3j web3j;
 

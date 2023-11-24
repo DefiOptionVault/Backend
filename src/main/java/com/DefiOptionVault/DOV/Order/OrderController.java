@@ -3,8 +3,14 @@ package com.DefiOptionVault.DOV.Order;
 import com.DefiOptionVault.DOV.Option.Option;
 import com.DefiOptionVault.DOV.Option.OptionRepository;
 import com.DefiOptionVault.DOV.Option.OptionService;
+import com.DefiOptionVault.DOV.Strike.StrikeService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.DayOfWeek;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +33,10 @@ public class OrderController {
     private OptionService optionService;
     @Autowired
     private Web3jService web3jService;
+    @Autowired
+    private StrikeService strikeService;
+
+    private static final BigInteger UNIT = new BigInteger("1000000000000000000");
 
     @GetMapping
     public List<Order> getAllOrders() {
@@ -115,9 +125,42 @@ public class OrderController {
         return web3jService.BalanceOf();
     }
 
-    @PostMapping("/expire/{settlementPrice}")
-    public void expire(@PathVariable BigInteger settlementPrice) {
-        web3jService.expire(settlementPrice);
+    @Transactional
+    @PostMapping("/expire/{settlementPrice}/{optionId}")
+    public void expire(@PathVariable double settlementPrice, @PathVariable int optionId) {
+        BigDecimal tmpBD = BigDecimal.valueOf(settlementPrice);
+        tmpBD = tmpBD.multiply(new BigDecimal("1e18"));
+        BigInteger bigSettlePrice = tmpBD.toBigInteger();
+        web3jService.expire(bigSettlePrice);
+
+        List<Order> orders = orderService.getAllOrders();
+
+        for (Order order : orders) {
+            if (order.getOption().getOptionId() == optionId) {
+                order.setSettled(true);
+                order.setSettlementPrice(bigSettlePrice.toString());
+                BigInteger pnl = orderService.calcPnl(order);
+                order.setPnl(pnl.toString());
+            }
+        }
+        BigDecimal nowPrice = strikeService.getCurrentAssetPrice();
+        Option option = optionService.getOptionById(optionId).orElseThrow(NoSuchElementException::new);;
+        String expirySymbol = option.getSymbol();
+
+        ZonedDateTime nextSunday = ZonedDateTime.now(ZoneOffset.UTC)
+                .with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+                .withHour(23).withMinute(59).withSecond(59);
+        Timestamp tmp = Timestamp.from(nextSunday.toInstant());
+        BigInteger newExpiry = BigInteger.valueOf(tmp.getTime());
+
+        BigInteger[] strikes = new BigInteger[4];
+        BigInteger base = nowPrice.toBigInteger();
+        strikes[0] = base.subtract(new BigInteger("100"));
+        strikes[1] = base.subtract(new BigInteger("50"));
+        strikes[2] = base.add(new BigInteger("50"));
+        strikes[3] = base.add(new BigInteger("100"));
+
+        web3jService.bootstrap(strikes, newExpiry, expirySymbol);
     }
 
     @Transactional
