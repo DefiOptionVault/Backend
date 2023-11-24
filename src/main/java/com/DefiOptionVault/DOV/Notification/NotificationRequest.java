@@ -1,5 +1,6 @@
 package com.DefiOptionVault.DOV.Notification;
 
+
 public class NotificationRequest {
     private String deviceToken;
     private String title;

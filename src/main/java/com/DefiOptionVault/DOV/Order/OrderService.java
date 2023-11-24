@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OrderService {
@@ -86,6 +87,7 @@ public class OrderService {
         return result;
     }
 
+    @Transactional
     @Scheduled(cron = "0 59 23 * * SUN")
     public void setAllPnl() {
         List<Order> orders = getAllOrders();

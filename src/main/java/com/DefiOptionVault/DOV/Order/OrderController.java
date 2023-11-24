@@ -8,6 +8,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -119,11 +120,13 @@ public class OrderController {
         web3jService.expire(settlementPrice);
     }
 
-    @PostMapping("/updateSettled/{order_id}")
+    @Transactional
+    @PostMapping("/updateSettled/{orderId}")
     public void updateSetteled(@PathVariable int orderId) {
         Order order = orderService.getOrderById(orderId)
                 .orElseThrow(NoSuchElementException::new);
-
+        System.out.println(order.getSettled());
         order.setSettled(true);
+        System.out.println(order.getSettled());
     }
 }

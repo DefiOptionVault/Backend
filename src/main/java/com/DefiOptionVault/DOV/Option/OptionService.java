@@ -1,6 +1,6 @@
 package com.DefiOptionVault.DOV.Option;
 
-import com.DefiOptionVault.DOV.Notification.NotificationRequest;
+import com.DefiOptionVault.DOV.Strike.CurrentPriceResponse;
 import com.DefiOptionVault.DOV.Strike.StrikeService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
 import java.math.BigDecimal;
@@ -11,13 +11,16 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import com.DefiOptionVault.DOV.Notification.NotificationService;
 
 import java.util.Optional;
 import java.util.List;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class OptionService {
@@ -25,15 +28,10 @@ public class OptionService {
     @Autowired
     private OptionRepository optionRepository;
 
-//    @Autowired
-//    private NotificationService notificationService;
-//
-//    @Autowired
-//    private NotificationRequest notificationRequest;
+    @Autowired
+    private NotificationService notificationService;
 
-//    @Autowired
-//    private StrikeService strikeService;
-
+    private static final String DERIBIT_CURRENT_PRICE_API_URL = "https://www.deribit.com/api/v2/public/get_index_price?index_name=eth_usdc";
     private static final BigInteger UNIT = new BigInteger("1000000000000000000");
 
     // Create
@@ -44,6 +42,12 @@ public class OptionService {
     // Read
     public Optional<Option> getOptionById(int id) {
         return optionRepository.findById(id);
+    }
+
+    public BigDecimal getCurrentAssetPrice() {
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<CurrentPriceResponse> response = restTemplate.getForEntity(DERIBIT_CURRENT_PRICE_API_URL, CurrentPriceResponse.class);
+        return Objects.requireNonNull(response.getBody()).getResult().getPrice();
     }
 
     public Option generateNextRoundOption(Integer optionId) {
@@ -70,7 +74,6 @@ public class OptionService {
     @Scheduled(cron = "0 59 23 * * SUN")
     public void createNextRoundOptionInContract() {
         Web3jService web3jService = new Web3jService();
-        StrikeService strikeService = new StrikeService();
         List<Option> allOptions = optionRepository.findAll();
         for (Option option : allOptions) {
             LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC)
@@ -83,11 +86,11 @@ public class OptionService {
                     .atZone(ZoneOffset.UTC)
                     .toLocalDateTime();
             if (expiry.equals(now)) {
-                BigInteger settlementPrice = new BigInteger(String.valueOf(strikeService.getCurrentAssetPrice()));
+                BigInteger settlementPrice = new BigInteger(String.valueOf(getCurrentAssetPrice()));
                 web3jService.expire(settlementPrice.multiply(UNIT));
                 Option newOption = generateNextRoundOption(option.getOptionId());
                 BigInteger[] strikes = new BigInteger[4];
-                BigInteger base = new BigInteger(String.valueOf(strikeService.getCurrentAssetPrice()));
+                BigInteger base = new BigInteger(String.valueOf(getCurrentAssetPrice()));
                 strikes[0] = base.subtract(new BigInteger("100"));
                 strikes[1] = base.subtract(new BigInteger("50"));
                 strikes[2] = base.add(new BigInteger("50"));
@@ -101,17 +104,19 @@ public class OptionService {
                         BigInteger.valueOf(newOption.getExpiry().getTime()),
                         newOption.getSymbol());
             }
-//            try {
-//                String userDeviceToken = notificationRequest.getDeviceToken();
-//                if (userDeviceToken != null && !userDeviceToken.isEmpty()) {
-//                    notificationService.sendNotification(
-//                            userDeviceToken,
-//                            "알림 : 옵션 상품 만기",
-//                            "현재 옵션 상품이 만기되었습니다. 정산 내역을 확인해주세요.");
-//                }
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
+            /*
+            try {
+                String userDeviceToken = notificationRequest.getDeviceToken();
+                if (userDeviceToken != null && !userDeviceToken.isEmpty()) {
+                    notificationService.sendNotification(
+                            userDeviceToken,
+                            "알림 : 옵션 상품 만기",
+                            "현재 옵션 상품이 만기되었습니다. 정산 내역을 확인해주세요.");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            */
         }
 
     }
