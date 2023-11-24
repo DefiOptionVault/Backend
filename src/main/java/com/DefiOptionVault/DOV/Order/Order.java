@@ -47,8 +47,8 @@ public class Order {
     @Column(name = "SETTLED")
     private boolean settled;
 
-    @Column(name = "TOKEN_ID", length = 64)
-    private String tokenId;
+    @Column(name = "TOKEN_ID")
+    private int tokenId;
 
     public Integer getOrderId() {
         return orderId;
@@ -98,7 +98,7 @@ public class Order {
         return settled;
     }
 
-    public String getTokenId() {
+    public int getTokenId() {
         return tokenId;
     }
 
@@ -150,7 +150,7 @@ public class Order {
         this.settled = settled;
     }
 
-    public void setTokenId(String tokenId) {
+    public void setTokenId(int tokenId) {
         this.tokenId = tokenId;
     }
 }

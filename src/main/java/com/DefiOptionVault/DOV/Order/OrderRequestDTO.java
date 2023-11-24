@@ -6,7 +6,7 @@ public class OrderRequestDTO {
     private String position;
     private String strikePrice;
     private String clientAddress;
-    private String tokenId;
+    private int tokenId;
 
     public Integer getAmount() {
         return amount;
@@ -28,7 +28,7 @@ public class OrderRequestDTO {
         return clientAddress;
     }
 
-    public String getTokenId() {
+    public int getTokenId() {
         return tokenId;
     }
 
@@ -52,7 +52,7 @@ public class OrderRequestDTO {
         this.clientAddress = clientAddress;
     }
 
-    public void setTokenId(String tokenId) {
+    public void setTokenId(int tokenId) {
         this.tokenId = tokenId;
     }
 }

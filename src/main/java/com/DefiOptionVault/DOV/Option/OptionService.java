@@ -25,14 +25,14 @@ public class OptionService {
     @Autowired
     private OptionRepository optionRepository;
 
-    @Autowired
-    private NotificationService notificationService;
+//    @Autowired
+//    private NotificationService notificationService;
+//
+//    @Autowired
+//    private NotificationRequest notificationRequest;
 
-    @Autowired
-    private NotificationRequest notificationRequest;
-
-    @Autowired
-    private StrikeService strikeService;
+//    @Autowired
+//    private StrikeService strikeService;
 
     private static final BigInteger UNIT = new BigInteger("1000000000000000000");
 
@@ -101,17 +101,17 @@ public class OptionService {
                         BigInteger.valueOf(newOption.getExpiry().getTime()),
                         newOption.getSymbol());
             }
-            try {
-                String userDeviceToken = notificationRequest.getDeviceToken();
-                if (userDeviceToken != null && !userDeviceToken.isEmpty()) {
-                    notificationService.sendNotification(
-                            userDeviceToken,
-                            "알림 : 옵션 상품 만기",
-                            "현재 옵션 상품이 만기되었습니다. 정산 내역을 확인해주세요.");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//            try {
+//                String userDeviceToken = notificationRequest.getDeviceToken();
+//                if (userDeviceToken != null && !userDeviceToken.isEmpty()) {
+//                    notificationService.sendNotification(
+//                            userDeviceToken,
+//                            "알림 : 옵션 상품 만기",
+//                            "현재 옵션 상품이 만기되었습니다. 정산 내역을 확인해주세요.");
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
         }
 
     }

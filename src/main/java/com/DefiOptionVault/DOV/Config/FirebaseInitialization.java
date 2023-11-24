@@ -9,7 +9,7 @@ import javax.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-@Service
+//@Service
 public class FirebaseInitialization {
     @PostConstruct
     public void initialize() throws IOException {

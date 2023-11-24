@@ -80,7 +80,7 @@ public class OrderController {
         order.setOption(option);
 
         int strikeIndex = orderService
-                .findStrikeIndexByStrikePrice(option, order.getStrikePrice());
+                .findStrikeIndexByStrikePrice(option, orderRequestDTO.getStrikePrice());
 
         order.setAmount(orderRequestDTO.getAmount());
         order.setPosition(orderRequestDTO.getPosition());
