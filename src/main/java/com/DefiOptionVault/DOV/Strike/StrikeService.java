@@ -28,7 +28,7 @@ public class StrikeService {
 
     private static final String DERIBIT_VOLATILITY_API_URL = "https://www.deribit.com/api/v2/public/get_historical_volatility?currency=ETH";
     private static final String DERIBIT_CURRENT_PRICE_API_URL = "https://www.deribit.com/api/v2/public/get_index_price?index_name=eth_usdc";
-    private static final BigDecimal UNIT_MULTIPLIER = new BigDecimal("1e18");
+    private static final BigDecimal UNIT_MULTIPLIER = new BigDecimal("100000000000000000000000000000000");
 
     @Autowired
     private StrikeRepository strikeRepository;
@@ -69,16 +69,23 @@ public class StrikeService {
         strikeRepository.deleteById(id);
     }
 
-    public BigInteger[] createNewStrikes(Option option) {
-        BigInteger[] strikes = new BigInteger[4];
-        BigInteger base = getCurrentAssetPrice().toBigInteger();
-        strikes[0] = base.subtract(new BigInteger("100"));
-        strikes[1] = base.subtract(new BigInteger("50"));
-        strikes[2] = base.add(new BigInteger("50"));
-        strikes[3] = base.add(new BigInteger("100"));
+    public BigDecimal[] createNewStrikes(Option option) {
+        BigDecimal[] strikes = new BigDecimal[4];
+        BigDecimal base = getCurrentAssetPrice();
 
+        strikes[0] = base.subtract(new BigDecimal("100"));
+        strikes[1] = base.subtract(new BigDecimal("50"));
+        strikes[2] = base.add(new BigDecimal("50"));
+        strikes[3] = base.add(new BigDecimal("100"));
+
+        /*
+        strikes[0] = base.multiply(new BigDecimal("0.98"));
+        strikes[1] = base.multiply(new BigDecimal("0.99"));
+        strikes[2] = base.multiply(new BigDecimal("1.01"));
+        strikes[3] = base.multiply(new BigDecimal("1.02"));
+        */
         int i = 1;
-        for(BigInteger strike : strikes) {
+        for(BigDecimal strike : strikes) {
             Strike newStrike = createNewStrike(option, strike, i);
             strikeRepository.save(newStrike);
             i += 1;
@@ -86,12 +93,12 @@ public class StrikeService {
         return strikes;
     }
 
-    public Strike createNewStrike(Option option, BigInteger strikePrice, int index) {
+    public Strike createNewStrike(Option option, BigDecimal strikePrice, int index) {
         Strike newStrike = new Strike();
         BigDecimal currentPrice = getCurrentAssetPrice();
         BigDecimal optionPrice = calcPutOptionPrice(
                 currentPrice,
-                new BigDecimal(strikePrice),
+                strikePrice,
                 new BigDecimal(7),
                 new BigDecimal("0.0525"));
 
@@ -145,7 +152,7 @@ public class StrikeService {
         BigDecimal K = new BigDecimal(strike.getStrikePrice());
         BigDecimal T = BigDecimal.valueOf(Math.abs(dayDiff));
         BigDecimal r = BigDecimal.valueOf(0.0525);
-        return calcPutOptionPrice(S, K, T, r).multiply(UNIT_MULTIPLIER);
+        return calcPutOptionPrice(S, K, T, r);
     }
 
     public List<Strike> updateStrikeOptionPricesForOptionId(int optionId) {
@@ -155,8 +162,10 @@ public class StrikeService {
         int i = 0;
         for (Strike strike : strikes) {
             //BigInteger updatedPrice = new BigInteger(String.valueOf(setStrikeOptionPrice(strike)));
-            BigDecimal updatedPrice = setStrikeOptionPrice(strike).multiply(UNIT_MULTIPLIER);
-            strikesForContract[i++] = new BigInteger(String.valueOf(updatedPrice));
+            BigDecimal updatedPrice = setStrikeOptionPrice(strike);
+            strikesForContract[i++] = new BigInteger(String.valueOf(updatedPrice
+                            .multiply(UNIT_MULTIPLIER)
+                            .setScale(0, RoundingMode.DOWN)));
             strike.setOptionPrice(updatedPrice.toString());
             strikeRepository.save(strike);
         }
@@ -195,14 +204,21 @@ public class StrikeService {
                     .toLocalDateTime();
             if (expiry.isAfter(now)) {
                 List<Strike> strikes = updateStrikeOptionPricesForOptionId(option.getOptionId());
+                /*
                 String address = option.getOptionAddress();
-                BigInteger[] strikePrices = new BigInteger[4];
+                BigDecimal[] strikePrices = new BigDecimal[4];
+                BigInteger[] strikesForContract = new BigInteger[4];
                 int i = 0;
                 for (Strike strike : strikes) {
-                    strikePrices[i] = new BigInteger(strike.getOptionPrice());
+                    strikePrices[i] = new BigDecimal(strike.getOptionPrice());
+                    strikesForContract[i] = strikePrices[i]
+                            .multiply(UNIT_MULTIPLIER)
+                            .setScale(0, RoundingMode.DOWN)
+                            .toBigInteger();
                     i += 1;
                 }
-                web3jService.updateOptionPrices(address, strikePrices);
+                web3jService.updateOptionPrices(address, strikesForContract);
+                */
             }
         }
     }

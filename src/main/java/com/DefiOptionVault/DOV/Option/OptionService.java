@@ -5,6 +5,7 @@ import com.DefiOptionVault.DOV.Strike.StrikeService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.sql.Timestamp;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
@@ -36,7 +37,7 @@ public class OptionService {
     private NotificationService notificationService;
 
     private static final String DERIBIT_CURRENT_PRICE_API_URL = "https://www.deribit.com/api/v2/public/get_index_price?index_name=eth_usdc";
-    private static final BigInteger UNIT = new BigInteger("1000000000000000000");
+    private static final BigDecimal UNIT = new BigDecimal("1000000000000000000");
 
     // Create
     public Option saveOption(Option option) {
@@ -90,21 +91,29 @@ public class OptionService {
                     .atZone(ZoneOffset.UTC)
                     .toLocalDateTime();
             if (expiry.equals(now)) {
-                BigInteger settlementPrice = new BigInteger(String.valueOf(getCurrentAssetPrice()));
-                web3jService.expire(settlementPrice.multiply(UNIT));
+                BigDecimal settlementPrice = getCurrentAssetPrice();
+                web3jService.expire(settlementPrice
+                        .multiply(UNIT)
+                        .setScale(0, RoundingMode.DOWN)
+                        .toBigInteger());
                 Option newOption = generateNextRoundOption(option.getOptionId());
-                BigInteger[] strikes = new BigInteger[4];
-                BigInteger base = new BigInteger(String.valueOf(getCurrentAssetPrice()));
-                strikes[0] = base.subtract(new BigInteger("100"));
-                strikes[1] = base.subtract(new BigInteger("50"));
-                strikes[2] = base.add(new BigInteger("50"));
-                strikes[3] = base.add(new BigInteger("100"));
+                
+                BigDecimal[] strikes = new BigDecimal[4];
+                BigDecimal base = getCurrentAssetPrice();
+                strikes[0] = base.subtract(new BigDecimal("100"));
+                strikes[1] = base.subtract(new BigDecimal("50"));
+                strikes[2] = base.add(new BigDecimal("50"));
+                strikes[3] = base.add(new BigDecimal("100"));
 
-                for(int i = 0; i < 4; i++) {
-                    strikes[i] = strikes[i].multiply(UNIT);
+                BigInteger[] strikesForBootstrap = new BigInteger[4];
+                for(int i = 0; i < 4; i++){
+                    strikesForBootstrap[i] = strikes[i]
+                            .multiply(UNIT)
+                            .setScale(0, RoundingMode.DOWN)
+                            .toBigInteger();
                 }
 
-                web3jService.bootstrap(strikes,
+                web3jService.bootstrap(strikesForBootstrap,
                         BigInteger.valueOf(newOption.getExpiry().getTime()),
                         newOption.getSymbol());
             }

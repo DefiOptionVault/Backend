@@ -28,9 +28,9 @@ public class OrderService {
     @Autowired
     private StrikeService strikeService;
 
-    private static final BigInteger UNIT = new BigInteger("1000000000000000000");
+    private static final BigDecimal UNIT = new BigDecimal("1000000000000000000");
 
-    public BigInteger getUNIT() {
+    public BigDecimal getUNIT() {
         return UNIT;
     }
 
@@ -69,11 +69,11 @@ public class OrderService {
         List<Order> result = new ArrayList<>();
         for (Order order : orders) {
             if (order.getClientAddress().equals(client)) {
-                BigInteger pnl;
+                BigDecimal pnl;
                 try {
-                    pnl = new BigInteger(order.getPnl());
+                    pnl = new BigDecimal(order.getPnl());
                 } catch (NumberFormatException e) {
-                    pnl = BigInteger.ZERO;
+                    pnl = BigDecimal.ZERO;
                 }
                 if (order.getSettlementPrice().equals("0")) {
                     result.add(order);
@@ -82,7 +82,7 @@ public class OrderService {
                         result.add(order);
                     }
                     if (order.getPosition().equals("purchase")
-                            && pnl.compareTo(BigInteger.ZERO) > 0) {
+                            && pnl.compareTo(BigDecimal.ZERO) > 0) {
                         result.add(order);
                     }
                 }
@@ -93,21 +93,21 @@ public class OrderService {
     }
 
     @Transactional
-    public BigInteger calcPnl(Order order) {
-        BigInteger orderSettle = new BigInteger(order.getSettlementPrice());
-        BigInteger orderStrike = new BigInteger(order.getStrikePrice());
-        BigInteger amount = new BigInteger(String.valueOf(order.getAmount()));
-        BigInteger newPnl = BigInteger.ZERO;
+    public BigDecimal calcPnl(Order order) {
+        BigDecimal orderSettle = new BigDecimal(order.getSettlementPrice());
+        BigDecimal orderStrike = new BigDecimal(order.getStrikePrice());
+        BigDecimal amount = new BigDecimal(String.valueOf(order.getAmount()));
+        BigDecimal newPnl = BigDecimal.ZERO;
         if (order.getPosition().equals("purchase")) {
             newPnl = (orderStrike.subtract(orderSettle)).multiply(amount);
             if (newPnl.signum() == -1) {
-                newPnl = BigInteger.ZERO;
+                newPnl = BigDecimal.ZERO;
             }
         }
         if (order.getPosition().equals("write")) {
             newPnl = (orderSettle.subtract(orderStrike)).multiply(amount);
             if (newPnl.signum() == -1) {
-                newPnl = BigInteger.ZERO;
+                newPnl = BigDecimal.ZERO;
             }
         }
         return newPnl;
@@ -128,11 +128,11 @@ public class OrderService {
                 String symbol = order.getSymbol();
                 if (symbol.substring(symbol.length() - 3).equals("PUT")) {
 
-                    BigInteger price = new BigInteger(String.valueOf(strikeService.getCurrentAssetPrice()));
+                    BigDecimal price = new BigDecimal(String.valueOf(strikeService.getCurrentAssetPrice()));
                     order.setSettlementPrice(String.valueOf(price));
 
-                    BigInteger strike = new BigInteger(order.getStrikePrice());
-                    BigInteger pnl = price.subtract(strike);
+                    BigDecimal strike = new BigDecimal(order.getStrikePrice());
+                    BigDecimal pnl = price.subtract(strike);
 
                     if (pnl.signum() == -1) {
                         order.setPnl(String.valueOf(0));
@@ -141,11 +141,12 @@ public class OrderService {
                     }
                 }
                 if (symbol.substring(symbol.length() - 4).equals("CALL")) {
-                    BigInteger settlement = new BigInteger(order.getSettlementPrice());
-                    BigInteger strike = new BigInteger(order.getStrikePrice());
+                    BigDecimal settlement = new BigDecimal(order.getSettlementPrice());
+                    BigDecimal strike = new BigDecimal(order.getStrikePrice());
                     order.setPnl(String.valueOf(strike.subtract(settlement)));
                 }
             }
+            orderRepository.save(order);
         }
     }
 }
@@ -154,5 +155,5 @@ public class OrderService {
 //openedOrder.get().
 //settlementPrice : 만기 시 가격으로 업뎃
 //Pnl : strikePrice 에서 빼서 넣기
-//strikePrice - settelmentPrice(put옵션 이익)
+//strikePrice - settlementPrice(put 옵션 이익)
 //큰 경우는 Pnl 0

@@ -8,6 +8,7 @@ import com.DefiOptionVault.DOV.Strike.StrikeService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.time.DayOfWeek;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -29,6 +30,8 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
     @Autowired
+    private OrderRepository orderRepository;
+    @Autowired
     private OptionRepository optionRepository;
     @Autowired
     private OptionService optionService;
@@ -37,7 +40,7 @@ public class OrderController {
     @Autowired
     private StrikeService strikeService;
 
-    private static final BigInteger UNIT = new BigInteger("1000000000000000000");
+    private static final BigDecimal UNIT = new BigDecimal("1000000000000000000");
 
     @GetMapping
     public List<Order> getAllOrders() {
@@ -74,11 +77,11 @@ public class OrderController {
 
     ///api/orders/allPnl?address={}
     @GetMapping("/allPnl")
-    public BigInteger getAllPnl(@RequestParam String address) {
+    public BigDecimal getAllPnl(@RequestParam String address) {
         List<Order> historicalPosition = getHistoricalPosition(address);
-        BigInteger sum = BigInteger.valueOf(0);
+        BigDecimal sum = BigDecimal.valueOf(0);
         for (Order order : historicalPosition) {
-            sum = sum.add(new BigInteger(order.getPnl()));
+            sum = sum.add(new BigDecimal(order.getPnl()));
         }
         return sum;
     }
@@ -130,38 +133,43 @@ public class OrderController {
     @PostMapping("/expire/{settlementPrice}/{optionId}")
     public void expire(@PathVariable double settlementPrice, @PathVariable int optionId) {
         BigDecimal tmpBD = BigDecimal.valueOf(settlementPrice);
-        tmpBD = tmpBD.multiply(new BigDecimal("1e18"));
+        tmpBD = tmpBD.multiply(new BigDecimal("1000000000000000000"))
+                .setScale(0, RoundingMode.DOWN);
         BigInteger bigSettlePrice = tmpBD.toBigInteger();
         web3jService.expire(bigSettlePrice);
 
         List<Order> orders = orderService.getAllOrders();
         for (Order order : orders) {
             if (order.getOption().getOptionId() == optionId) {
-                order.setSettlementPrice(String.valueOf((int)settlementPrice));
-                BigInteger pnl = orderService.calcPnl(order);
+                order.setSettlementPrice(String.valueOf(settlementPrice));
+                BigDecimal pnl = orderService.calcPnl(order);
                 order.setPnl(pnl.toString());
+                orderRepository.save(order);
             }
         }
 
         Option newOption = optionService.generateNextRoundOption(optionId);
-        BigInteger[] strikes = strikeService.createNewStrikes(newOption);
-        for(int i = 0; i < 4; i++){
-            strikes[i] = strikes[i].multiply(orderService.getUNIT());
+        BigDecimal[] strikes = strikeService.createNewStrikes(newOption);
+        BigInteger[] strikesForBootstrap = new BigInteger[4];
+        for (int i = 0; i < 4; i++) {
+            strikesForBootstrap[i] = strikes[i]
+                    .multiply(UNIT)
+                    .setScale(0, RoundingMode.DOWN)
+                    .toBigInteger();
         }
 
         web3jService.bootstrap(
-                strikes,
+                strikesForBootstrap,
                 BigInteger.valueOf(newOption.getExpiry().getTime()),
                 newOption.getSymbol());
     }
 
     @Transactional
     @PostMapping("/updateSettled/{orderId}")
-    public void updateSetteled(@PathVariable int orderId) {
+    public void updateSettled(@PathVariable int orderId) {
         Order order = orderService.getOrderById(orderId)
                 .orElseThrow(NoSuchElementException::new);
-        System.out.println(order.getSettled());
         order.setSettled(true);
-        System.out.println(order.getSettled());
+        orderRepository.save(order);
     }
 }

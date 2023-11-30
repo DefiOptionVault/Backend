@@ -4,7 +4,9 @@ import com.DefiOptionVault.DOV.Order.OrderService;
 import com.DefiOptionVault.DOV.Strike.StrikeService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.List;
+import org.bouncycastle.util.test.FixedSecureRandom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,12 +27,14 @@ public class OptionController {
 
     @Autowired
     private OptionService optionService;
-
+    
     @Autowired
     private StrikeService strikeService;
 
     @Autowired
     private OrderService orderService;
+
+    private static final BigDecimal UNIT = new BigDecimal("1000000000000000000");
 
     // Create
     @PostMapping("/set_option_info")
@@ -44,11 +48,15 @@ public class OptionController {
     public ResponseEntity<Option> generateNextRoundOption(@PathVariable Integer optionId) {
         Web3jService web3jService = new Web3jService();
         Option newOption = optionService.generateNextRoundOption(optionId);
-        BigInteger[] strikes = strikeService.createNewStrikes(newOption);
+        BigDecimal[] strikes = strikeService.createNewStrikes(newOption);
+        BigInteger[] strikesForBootstrap = new BigInteger[4];
         for(int i = 0; i < 4; i++){
-            strikes[i] = strikes[i].multiply(orderService.getUNIT());
+            strikesForBootstrap[i] = strikes[i]
+                    .multiply(UNIT)
+                    .setScale(0, RoundingMode.DOWN)
+                    .toBigInteger();
         }
-        web3jService.bootstrap(strikes,
+        web3jService.bootstrap(strikesForBootstrap,
                 BigInteger.valueOf(newOption.getExpiry().getTime()),
                 newOption.getSymbol());
         return new ResponseEntity<>(newOption, HttpStatus.CREATED);
