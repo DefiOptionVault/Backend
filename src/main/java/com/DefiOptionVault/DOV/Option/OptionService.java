@@ -11,6 +11,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -119,6 +123,37 @@ public class OptionService {
             */
         }
 
+    }
+
+    public List<Option> getValidOptions() {
+        List<Option> allOptions = getAllOptions();
+        List<Option> result = new ArrayList<>();
+        Map<String, Integer> validOptions = new HashMap<>();
+        for(Option option : allOptions) {
+            String symbol = option.getSymbol();
+            int round = option.getRound();
+            if (!validOptions.containsKey(symbol)) {
+                validOptions.put(symbol, round);
+                result.add(option);
+            }
+            if (validOptions.get(symbol) < round) {
+                validOptions.replace(symbol, round);
+                Option tmp = findOptionBySymbol(symbol, result);
+                int index = result.indexOf(tmp);
+                result.add(index, option);
+                result.remove(tmp);
+            }
+        }
+        return result;
+    }
+
+    private Option findOptionBySymbol(String symbol, List<Option> options) {
+        for(Option option : options) {
+            if (option.getSymbol().equals(symbol)) {
+                return option;
+            }
+        }
+        throw new NoSuchElementException();
     }
 
     // Update

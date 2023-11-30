@@ -11,6 +11,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +69,40 @@ public class StrikeService {
         strikeRepository.deleteById(id);
     }
 
+    public BigInteger[] createNewStrikes(Option option) {
+        BigInteger[] strikes = new BigInteger[4];
+        BigInteger base = getCurrentAssetPrice().toBigInteger();
+        strikes[0] = base.subtract(new BigInteger("100"));
+        strikes[1] = base.subtract(new BigInteger("50"));
+        strikes[2] = base.add(new BigInteger("50"));
+        strikes[3] = base.add(new BigInteger("100"));
+
+        int i = 1;
+        for(BigInteger strike : strikes) {
+            Strike newStrike = createNewStrike(option, strike, i);
+            strikeRepository.save(newStrike);
+            i += 1;
+        }
+        return strikes;
+    }
+
+    public Strike createNewStrike(Option option, BigInteger strikePrice, int index) {
+        Strike newStrike = new Strike();
+        BigDecimal currentPrice = getCurrentAssetPrice();
+        BigDecimal optionPrice = calcPutOptionPrice(
+                currentPrice,
+                new BigDecimal(strikePrice),
+                new BigDecimal(7),
+                new BigDecimal("0.0525"));
+
+        newStrike.setOption(option);
+        newStrike.setStrikePrice(strikePrice.toString());
+        newStrike.setOptionPrice(optionPrice.toString());
+        newStrike.setStrikeIndex(index);
+
+        return newStrike;
+    }
+
     public BigDecimal calcPutOptionPrice(BigDecimal S, BigDecimal K, BigDecimal T, BigDecimal r) {
         BigDecimal sigma = getLastVolatilityFromDeribit();
         return BlackScholes.putOptionPrice(S, K, T, r, sigma);
@@ -77,8 +112,9 @@ public class StrikeService {
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<HistoricalVolatilityResponse> response = restTemplate.getForEntity(DERIBIT_VOLATILITY_API_URL, HistoricalVolatilityResponse.class);
 
-        List<BigDecimal> volatilities = Objects.requireNonNull(response.getBody()).getResult();
-        BigDecimal lastVolatility = volatilities.get(volatilities.size() - 1);
+        List<List<BigDecimal>> volatilities = Objects.requireNonNull(response.getBody()).getResult();
+        List<BigDecimal> lastVolatilityList = volatilities.get(volatilities.size() - 1);
+        BigDecimal lastVolatility = lastVolatilityList.get(lastVolatilityList.size() - 1);
 
         BigDecimal divisor = BigDecimal.valueOf(Math.sqrt(365));
         return lastVolatility.divide(divisor, 64, RoundingMode.HALF_UP);
@@ -113,17 +149,25 @@ public class StrikeService {
     }
 
     public List<Strike> updateStrikeOptionPricesForOptionId(int optionId) {
+        Web3jService web3jService = new Web3jService();
         List<Strike> strikes = getStrikesByOptionId(optionId);
+        BigInteger[] strikesForContract = new BigInteger[4];
+        int i = 0;
         for (Strike strike : strikes) {
-            BigInteger updatedPrice = new BigInteger(String.valueOf(setStrikeOptionPrice(strike)));
+            //BigInteger updatedPrice = new BigInteger(String.valueOf(setStrikeOptionPrice(strike)));
+            BigDecimal updatedPrice = setStrikeOptionPrice(strike).multiply(UNIT_MULTIPLIER);
+            strikesForContract[i++] = new BigInteger(String.valueOf(updatedPrice));
             strike.setOptionPrice(updatedPrice.toString());
             strikeRepository.save(strike);
         }
+        web3jService.updateOptionPrices(
+                optionRepository.findById(optionId).get().getOptionAddress(),
+                strikesForContract);
         return strikes;
     }
 /*
     @Scheduled(cron = "0 0 0 * * ?")
-    public void updateOptionPricesForAllOptions() {
+    public void BigIntegersForAllOptions() {
         List<Option> allOptions = optionRepository.findAll();
         for (Option option : allOptions) {
             LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);

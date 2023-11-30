@@ -48,4 +48,16 @@ public class StrikeController {
         if (test == null) return BigDecimal.ZERO;
         return strikeService.getCurrentAssetPrice();
     }
+
+    /*//옵션 가격 테스트
+    @GetMapping("/calcPutOptionPrice")
+    public BigDecimal showOptionPrice() {
+        return strikeService.calcPutOptionPrice(
+                strikeService.getCurrentAssetPrice(),
+                new BigDecimal("2000"),
+                new BigDecimal("7"),
+                new BigDecimal("0.0525")
+        );
+    }
+    */
 }

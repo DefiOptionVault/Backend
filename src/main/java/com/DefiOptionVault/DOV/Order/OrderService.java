@@ -30,6 +30,10 @@ public class OrderService {
 
     private static final BigInteger UNIT = new BigInteger("1000000000000000000");
 
+    public BigInteger getUNIT() {
+        return UNIT;
+    }
+
     public List<Order> getAllOrders() {
         return orderRepository.findAll();
     }
@@ -125,7 +129,7 @@ public class OrderService {
                 if (symbol.substring(symbol.length() - 3).equals("PUT")) {
 
                     BigInteger price = new BigInteger(String.valueOf(strikeService.getCurrentAssetPrice()));
-                    order.setSettlementPrice(String.valueOf(price.multiply(UNIT)));
+                    order.setSettlementPrice(String.valueOf(price));
 
                     BigInteger strike = new BigInteger(order.getStrikePrice());
                     BigInteger pnl = price.subtract(strike);

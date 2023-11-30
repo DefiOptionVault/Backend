@@ -5,13 +5,13 @@ import java.util.List;
 
 public class HistoricalVolatilityResponse {
 
-    private List<BigDecimal> result;
+    private List<List<BigDecimal>> result;
 
-    public List<BigDecimal> getResult() {
+    public List<List<BigDecimal>> getResult() {
         return result;
     }
 
-    public void setResult(List<BigDecimal> result) {
+    public void setResult(List<List<BigDecimal>> result) {
         this.result = result;
     }
 }

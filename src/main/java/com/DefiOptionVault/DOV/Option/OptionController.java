@@ -1,5 +1,9 @@
 package com.DefiOptionVault.DOV.Option;
 
+import com.DefiOptionVault.DOV.Order.OrderService;
+import com.DefiOptionVault.DOV.Strike.StrikeService;
+import com.DefiOptionVault.DOV.Strike.Web3jService;
+import java.math.BigInteger;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,6 +26,12 @@ public class OptionController {
     @Autowired
     private OptionService optionService;
 
+    @Autowired
+    private StrikeService strikeService;
+
+    @Autowired
+    private OrderService orderService;
+
     // Create
     @PostMapping("/set_option_info")
     public ResponseEntity<Option> createOption(@RequestBody Option option) {
@@ -29,9 +39,18 @@ public class OptionController {
         return new ResponseEntity<>(savedOption, HttpStatus.CREATED);
     }
 
-    @PostMapping("/{optionId}/generateNextRound")
+
+    @PostMapping("/{optionId}/generateNextRoundIfExpired")
     public ResponseEntity<Option> generateNextRoundOption(@PathVariable Integer optionId) {
+        Web3jService web3jService = new Web3jService();
         Option newOption = optionService.generateNextRoundOption(optionId);
+        BigInteger[] strikes = strikeService.createNewStrikes(newOption);
+        for(int i = 0; i < 4; i++){
+            strikes[i] = strikes[i].multiply(orderService.getUNIT());
+        }
+        web3jService.bootstrap(strikes,
+                BigInteger.valueOf(newOption.getExpiry().getTime()),
+                newOption.getSymbol());
         return new ResponseEntity<>(newOption, HttpStatus.CREATED);
     }
 
@@ -70,5 +89,10 @@ public class OptionController {
     @GetMapping("/get_option_info")
     public List<Option> getAllOptionById() {
         return optionService.getAllOptions();
+    }
+
+    @GetMapping("/getValidOptionInfo")
+    public List<Option> getValidOptionInfo() {
+        return optionService.getValidOptions();
     }
 }

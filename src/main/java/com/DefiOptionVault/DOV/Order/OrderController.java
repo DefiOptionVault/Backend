@@ -3,6 +3,7 @@ package com.DefiOptionVault.DOV.Order;
 import com.DefiOptionVault.DOV.Option.Option;
 import com.DefiOptionVault.DOV.Option.OptionRepository;
 import com.DefiOptionVault.DOV.Option.OptionService;
+import com.DefiOptionVault.DOV.Strike.Strike;
 import com.DefiOptionVault.DOV.Strike.StrikeService;
 import com.DefiOptionVault.DOV.Strike.Web3jService;
 import java.math.BigDecimal;
@@ -134,33 +135,24 @@ public class OrderController {
         web3jService.expire(bigSettlePrice);
 
         List<Order> orders = orderService.getAllOrders();
-
         for (Order order : orders) {
             if (order.getOption().getOptionId() == optionId) {
-                order.setSettled(true);
-                order.setSettlementPrice(bigSettlePrice.toString());
+                order.setSettlementPrice(String.valueOf((int)settlementPrice));
                 BigInteger pnl = orderService.calcPnl(order);
                 order.setPnl(pnl.toString());
             }
         }
-        BigDecimal nowPrice = strikeService.getCurrentAssetPrice();
-        Option option = optionService.getOptionById(optionId).orElseThrow(NoSuchElementException::new);;
-        String expirySymbol = option.getSymbol();
 
-        ZonedDateTime nextSunday = ZonedDateTime.now(ZoneOffset.UTC)
-                .with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
-                .withHour(23).withMinute(59).withSecond(59);
-        Timestamp tmp = Timestamp.from(nextSunday.toInstant());
-        BigInteger newExpiry = BigInteger.valueOf(tmp.getTime());
+        Option newOption = optionService.generateNextRoundOption(optionId);
+        BigInteger[] strikes = strikeService.createNewStrikes(newOption);
+        for(int i = 0; i < 4; i++){
+            strikes[i] = strikes[i].multiply(orderService.getUNIT());
+        }
 
-        BigInteger[] strikes = new BigInteger[4];
-        BigInteger base = nowPrice.toBigInteger();
-        strikes[0] = base.subtract(new BigInteger("100"));
-        strikes[1] = base.subtract(new BigInteger("50"));
-        strikes[2] = base.add(new BigInteger("50"));
-        strikes[3] = base.add(new BigInteger("100"));
-
-        web3jService.bootstrap(strikes, newExpiry, expirySymbol);
+        web3jService.bootstrap(
+                strikes,
+                BigInteger.valueOf(newOption.getExpiry().getTime()),
+                newOption.getSymbol());
     }
 
     @Transactional
