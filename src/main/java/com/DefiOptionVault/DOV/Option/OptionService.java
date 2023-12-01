@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import com.DefiOptionVault.DOV.Notification.NotificationService;
 
 import java.util.Optional;
 import java.util.List;
@@ -32,9 +31,6 @@ public class OptionService {
 
     @Autowired
     private OptionRepository optionRepository;
-
-    @Autowired
-    private NotificationService notificationService;
 
     private static final String DERIBIT_CURRENT_PRICE_API_URL = "https://www.deribit.com/api/v2/public/get_index_price?index_name=eth_usdc";
     private static final BigDecimal UNIT = new BigDecimal("1000000000000000000");
@@ -117,19 +113,7 @@ public class OptionService {
                         BigInteger.valueOf(newOption.getExpiry().getTime()),
                         newOption.getSymbol());
             }
-            /*
-            try {
-                String userDeviceToken = notificationRequest.getDeviceToken();
-                if (userDeviceToken != null && !userDeviceToken.isEmpty()) {
-                    notificationService.sendNotification(
-                            userDeviceToken,
-                            "알림 : 옵션 상품 만기",
-                            "현재 옵션 상품이 만기되었습니다. 정산 내역을 확인해주세요.");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            */
+
         }
 
     }
