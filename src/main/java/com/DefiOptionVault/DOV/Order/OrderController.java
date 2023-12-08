@@ -184,4 +184,13 @@ public class OrderController {
         order.setSettled(true);
         orderRepository.save(order);
     }
+
+    @Transactional
+    @PostMapping("/updatePnl/{orderId}/{pnl}")
+    public void updatePnl(@PathVariable int orderId, @PathVariable String pnl) {
+        Order order = orderService.getOrderById(orderId)
+                .orElseThrow(NoSuchElementException::new);
+        order.setPnl(pnl);
+        orderRepository.save(order);
+    }
 }
