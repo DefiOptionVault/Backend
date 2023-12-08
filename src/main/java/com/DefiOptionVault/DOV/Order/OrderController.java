@@ -151,9 +151,19 @@ public class OrderController {
         Option newOption = optionService.generateNextRoundOption(optionId);
         BigDecimal[] strikes = strikeService.createNewStrikes(newOption);
         BigInteger[] strikesForBootstrap = new BigInteger[4];
+        BigInteger[] optionPriceForUpdate = new BigInteger[4];
         for (int i = 0; i < 4; i++) {
             strikesForBootstrap[i] = strikes[i]
                     .multiply(UNIT)
+                    .setScale(0, RoundingMode.DOWN)
+                    .toBigInteger();
+
+            optionPriceForUpdate[i] = strikeService.calcPutOptionPrice(
+                            strikeService.getCurrentAssetPrice(),
+                            strikes[i],
+                            new BigDecimal(7),
+                            new BigDecimal("0.0525")
+                    ).multiply(UNIT)
                     .setScale(0, RoundingMode.DOWN)
                     .toBigInteger();
         }
@@ -162,6 +172,8 @@ public class OrderController {
                 strikesForBootstrap,
                 BigInteger.valueOf(newOption.getExpiry().getTime()),
                 newOption.getSymbol());
+
+        web3jService.updateOptionPrices(newOption.getOptionAddress(), optionPriceForUpdate);
     }
 
     @Transactional

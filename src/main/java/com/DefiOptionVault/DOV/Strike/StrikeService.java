@@ -84,7 +84,7 @@ public class StrikeService {
         strikes[2] = base.multiply(new BigDecimal("1.01"));
         strikes[3] = base.multiply(new BigDecimal("1.02"));
         */
-        int i = 1;
+        int i = 0;
         for(BigDecimal strike : strikes) {
             Strike newStrike = createNewStrike(option, strike, i);
             strikeRepository.save(newStrike);
@@ -112,6 +112,7 @@ public class StrikeService {
 
     public BigDecimal calcPutOptionPrice(BigDecimal S, BigDecimal K, BigDecimal T, BigDecimal r) {
         BigDecimal sigma = getLastVolatilityFromDeribit();
+        sigma = sigma.multiply(BigDecimal.valueOf(0.05));
         return BlackScholes.putOptionPrice(S, K, T, r, sigma);
     }
 

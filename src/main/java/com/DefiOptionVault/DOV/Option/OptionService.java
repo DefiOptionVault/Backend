@@ -62,11 +62,17 @@ public class OptionService {
         newOption.setSymbol(existingOption.getSymbol());
         newOption.setRound(existingOption.getRound() + 1);
 
-        ZonedDateTime nextSunday = ZonedDateTime.now(ZoneOffset.UTC)
-                .with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
-                .withHour(23).withMinute(59).withSecond(59);
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC)
+                .withSecond(59)
+                .withNano(0);
+        LocalDateTime sevenDaysLater = now.plusDays(7);
+        Timestamp timestamp = Timestamp.valueOf(sevenDaysLater);
 
-        newOption.setExpiry(Timestamp.from(nextSunday.toInstant()));
+        /*ZonedDateTime nextSunday = ZonedDateTime.now(ZoneOffset.UTC)
+                .with(TemporalAdjusters.next(DayOfWeek.SUNDAY))
+                .withHour(23).withMinute(59).withSecond(59);*/
+
+        newOption.setExpiry(timestamp);
 
         return optionRepository.save(newOption);
     }
