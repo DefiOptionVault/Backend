@@ -150,10 +150,3 @@ public class OrderService {
         }
     }
 }
-
-
-//openedOrder.get().
-//settlementPrice : 만기 시 가격으로 업뎃
-//Pnl : strikePrice 에서 빼서 넣기
-//strikePrice - settlementPrice(put 옵션 이익)
-//큰 경우는 Pnl 0

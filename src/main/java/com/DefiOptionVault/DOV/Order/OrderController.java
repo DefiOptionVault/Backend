@@ -117,12 +117,6 @@ public class OrderController {
         orderService.deleteOrder(id);
     }
 
-    /*
-    @GetMapping("/bootstrap")
-    public void bootstrap() {
-        web3jService.bootstrap();
-    }
-    */
 
     @GetMapping("/getBalance")
     public BigInteger getBalance() {

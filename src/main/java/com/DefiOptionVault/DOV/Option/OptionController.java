@@ -70,19 +70,6 @@ public class OptionController {
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
-    // Update
-    /*
-    @PutMapping("/{id}")
-    public ResponseEntity<Option> updateOption(@PathVariable int id, @RequestBody Option option) {
-        if (optionService.getOptionById(id).isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
-        option.setOptionId(id);
-        Option updatedOption = optionService.updateOption(option);
-        return new ResponseEntity<>(updatedOption, HttpStatus.OK);
-    }
-    */
-
     // Delete
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOption(@PathVariable int id) {

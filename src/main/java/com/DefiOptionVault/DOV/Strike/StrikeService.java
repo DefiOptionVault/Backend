@@ -78,12 +78,6 @@ public class StrikeService {
         strikes[2] = base.add(new BigDecimal("50"));
         strikes[3] = base.add(new BigDecimal("100"));
 
-        /*
-        strikes[0] = base.multiply(new BigDecimal("0.98"));
-        strikes[1] = base.multiply(new BigDecimal("0.99"));
-        strikes[2] = base.multiply(new BigDecimal("1.01"));
-        strikes[3] = base.multiply(new BigDecimal("1.02"));
-        */
         int i = 0;
         for(BigDecimal strike : strikes) {
             Strike newStrike = createNewStrike(option, strike, i);
@@ -175,23 +169,6 @@ public class StrikeService {
                 strikesForContract);
         return strikes;
     }
-/*
-    @Scheduled(cron = "0 0 0 * * ?")
-    public void BigIntegersForAllOptions() {
-        List<Option> allOptions = optionRepository.findAll();
-        for (Option option : allOptions) {
-            LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
-            LocalDateTime expiry = option
-                    .getExpiry()
-                    .toInstant()
-                    .atZone(ZoneOffset.UTC)
-                    .toLocalDateTime();
-            if(expiry.isAfter(now)) {
-                updateStrikeOptionPricesForOptionId(option.getOptionId());
-            }
-        }
-    }
-*/
     @Scheduled(cron = "0 0 0 * * ?")
     public void updateOptionPricesByAddress() {
         Web3jService web3jService = new Web3jService();
@@ -205,21 +182,7 @@ public class StrikeService {
                     .toLocalDateTime();
             if (expiry.isAfter(now)) {
                 List<Strike> strikes = updateStrikeOptionPricesForOptionId(option.getOptionId());
-                /*
-                String address = option.getOptionAddress();
-                BigDecimal[] strikePrices = new BigDecimal[4];
-                BigInteger[] strikesForContract = new BigInteger[4];
-                int i = 0;
-                for (Strike strike : strikes) {
-                    strikePrices[i] = new BigDecimal(strike.getOptionPrice());
-                    strikesForContract[i] = strikePrices[i]
-                            .multiply(UNIT_MULTIPLIER)
-                            .setScale(0, RoundingMode.DOWN)
-                            .toBigInteger();
-                    i += 1;
-                }
-                web3jService.updateOptionPrices(address, strikesForContract);
-                */
+
             }
         }
     }
